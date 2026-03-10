@@ -89,6 +89,35 @@ function ProfileContent() {
     const [imageDims, setImageDims] = useState<{ width: number, height: number } | null>(null);
     const previewContainerRef = useRef<HTMLDivElement>(null);
 
+    // --- Plant Reminder Toggles ---
+    const [waterReminderOn, setWaterReminderOn] = useState(true);
+    const [fertilizerReminderOn, setFertilizerReminderOn] = useState(false);
+
+    const handleWaterToggle = () => {
+        const next = !waterReminderOn;
+        setWaterReminderOn(next);
+        addNotification({
+            title: next ? '💧 Water Reminder Activated' : '💧 Water Reminder Disabled',
+            description: next
+                ? 'Hydration cycle alerts are now ON. You will be reminded every 2 days.'
+                : 'Water scheduling reminders have been turned off.',
+            type: next ? 'update' : 'info'
+        });
+    };
+
+    const handleFertilizerToggle = () => {
+        const next = !fertilizerReminderOn;
+        setFertilizerReminderOn(next);
+        addNotification({
+            title: next ? '✨ Fertilization Reminder Activated' : '✨ Fertilization Reminder Disabled',
+            description: next
+                ? 'Nutrient injection protocol alerts are now ON. Next scheduled: March 25.'
+                : 'Fertilization scheduling reminders have been turned off.',
+            type: next ? 'update' : 'info'
+        });
+    };
+    // --------------------------------
+
     const initCamera = async (retryCount = 0, existingStream?: MediaStream) => {
         console.log(`initCamera attempt ${retryCount + 1}`, existingStream ? 'with existing stream' : 'requesting new stream');
         try {
@@ -833,9 +862,21 @@ function ProfileContent() {
                                                     <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Hydration cycles</p>
                                                 </div>
                                             </div>
-                                            <div className="w-14 h-8 bg-pink-500 rounded-full relative cursor-pointer shadow-lg shadow-pink-500/20">
-                                                <div className="absolute right-1 top-1 w-6 h-6 bg-white rounded-full shadow-md" />
-                                            </div>
+                                            <button
+                                                onClick={handleWaterToggle}
+                                                aria-label={waterReminderOn ? 'Turn off water reminder' : 'Turn on water reminder'}
+                                                className={cn(
+                                                    "w-14 h-8 rounded-full relative cursor-pointer transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-pink-500/20",
+                                                    waterReminderOn
+                                                        ? "bg-pink-500 shadow-lg shadow-pink-500/30"
+                                                        : "bg-slate-200 dark:bg-white/10"
+                                                )}
+                                            >
+                                                <div className={cn(
+                                                    "absolute top-1 w-6 h-6 bg-white rounded-full shadow-md transition-all duration-300",
+                                                    waterReminderOn ? "right-1" : "left-1"
+                                                )} />
+                                            </button>
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
@@ -860,11 +901,23 @@ function ProfileContent() {
                                                     <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Nutrient injection protocols</p>
                                                 </div>
                                             </div>
-                                            <div className="w-14 h-8 bg-slate-200 dark:bg-white/10 rounded-full relative cursor-pointer">
-                                                <div className="absolute left-1 top-1 w-6 h-6 bg-white rounded-full shadow-sm" />
-                                            </div>
+                                            <button
+                                                onClick={handleFertilizerToggle}
+                                                aria-label={fertilizerReminderOn ? 'Turn off fertilizer reminder' : 'Turn on fertilizer reminder'}
+                                                className={cn(
+                                                    "w-14 h-8 rounded-full relative cursor-pointer transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-pink-500/20",
+                                                    fertilizerReminderOn
+                                                        ? "bg-pink-500 shadow-lg shadow-pink-500/30"
+                                                        : "bg-slate-200 dark:bg-white/10"
+                                                )}
+                                            >
+                                                <div className={cn(
+                                                    "absolute top-1 w-6 h-6 bg-white rounded-full shadow-md transition-all duration-300",
+                                                    fertilizerReminderOn ? "right-1" : "left-1"
+                                                )} />
+                                            </button>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-4 opacity-50">
+                                        <div className={cn("grid grid-cols-2 gap-4 transition-opacity duration-300", fertilizerReminderOn ? "opacity-100" : "opacity-50")}>
                                             <div className="p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Frequency</p>
                                                 <p className="text-sm font-black text-slate-400">Monthly</p>
