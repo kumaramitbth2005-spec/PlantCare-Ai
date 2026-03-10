@@ -59,7 +59,17 @@ type ScanRecord = {
     createdAt: string;
 };
 
-function StatCard({ stat, index }: { stat: any, index: number }) {
+interface StatData {
+    label: string;
+    value: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    icon: any;
+    color: string;
+    trend: string;
+    trendUp: boolean;
+}
+
+function StatCard({ stat, index }: { stat: StatData, index: number }) {
     const ColorIcon = stat.icon;
     return (
         <motion.div
@@ -422,7 +432,7 @@ export default function Dashboard() {
                                             </td>
                                         </tr>
                                     ) : (
-                                        history.map((scan, i) => (
+                                        history.map((scan) => (
                                             <tr
                                                 key={scan._id}
                                                 className="hover:bg-pink-50/30 dark:hover:bg-pink-500/5 transition-all duration-300 group"

@@ -8,16 +8,13 @@ import {
     Download,
     Trash2,
     ExternalLink,
-    ChevronLeft,
     ChevronRight,
     Calendar,
-    Clock,
     X,
     Share2,
     Copy,
     CheckCircle2,
     AlertCircle,
-    Info,
     ArrowUp,
     ArrowDown
 } from "lucide-react";
@@ -73,7 +70,7 @@ export default function HistoryPage() {
     }, [user]);
 
     const filteredRecords = useMemo(() => {
-        let result = records.filter(record => {
+        const result = records.filter(record => {
             const matchesSearch =
                 record._id.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 record.plant.toLowerCase().includes(searchQuery.toLowerCase()) ||

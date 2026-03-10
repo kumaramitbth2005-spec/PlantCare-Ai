@@ -98,12 +98,27 @@ exports.getMe = async (req, res, next) => {
 };
 
 exports.forgotPassword = async (req, res, next) => {
-    // 1) Get user based on POSTed email
-    const user = await User.findOne({ email: req.body.email });
+    // 1) Get user based on POSTed contact (email or phone)
+    const { contact } = req.body;
+    
+    if (!contact) {
+        return res.status(400).json({
+            status: 'fail',
+            message: 'Please provide your email or phone number.'
+        });
+    }
+
+    const user = await User.findOne({
+        $or: [
+            { email: contact },
+            { contactNumber: contact }
+        ]
+    });
+
     if (!user) {
         return res.status(404).json({
             status: 'fail',
-            message: 'There is no user with that email address.'
+            message: 'There is no user with that email address or phone number.'
         });
     }
 
@@ -113,7 +128,19 @@ exports.forgotPassword = async (req, res, next) => {
     user.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
     await user.save({ validateBeforeSave: false });
 
-    // 3) Send it to user's email
+    // 3) Send it to user's email 
+    // FALLBACK: If dummy credentials are used, skip sending email to prevent crash.
+    const isDummyEmail = !process.env.EMAIL_USERNAME || process.env.EMAIL_USERNAME.includes('your-email');
+    
+    if (isDummyEmail) {
+        // Skip nodemailer and just return success for testing/demo purposes
+        console.log(`[TESTING MODE] Dummy Email detected. OTP for ${user.email} is: ${otp}`);
+        return res.status(200).json({
+            status: 'success',
+            message: `OTP generated successfully! (Testing Mode: Check backend console for OTP: ${otp})`
+        });
+    }
+
     const message = `Your password reset OTP is ${otp}. It is valid for 10 minutes.`;
 
     try {
@@ -125,12 +152,14 @@ exports.forgotPassword = async (req, res, next) => {
 
         res.status(200).json({
             status: 'success',
-            message: 'OTP sent to email!'
+            message: 'OTP sent to your registered email!'
         });
     } catch (err) {
         user.resetPasswordOtp = undefined;
         user.resetPasswordExpires = undefined;
         await user.save({ validateBeforeSave: false });
+        
+        console.error("Email Error:", err);
 
         return res.status(500).json({
             status: 'error',

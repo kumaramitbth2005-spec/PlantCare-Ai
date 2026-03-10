@@ -1,30 +1,121 @@
 "use client";
 
-import { Bell, Search, Trash2, Clock, X, Menu, Zap } from "lucide-react";
+import { Bell, Search, Trash2, Clock, X, Menu, Zap, User, LayoutDashboard, Scan, History, FolderKanban, LogOut, MessageSquare, HelpCircle, Settings, RefreshCw, Sparkles, Languages, Lock, Sliders, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useNotifications } from "@/lib/NotificationContext";
 import { useAuth } from "@/lib/AuthContext";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
     const { t } = useLanguage();
-    const { notifications, unreadCount, markAsRead, clearAll } = useNotifications();
-    const { user } = useAuth();
+    const { notifications, unreadCount, markAsRead, clearAll, addNotification } = useNotifications();
+    const { user, logout } = useAuth();
     const [showNotifications, setShowNotifications] = useState(false);
+    
+    // --- Search Implementation ---
+    const router = useRouter();
+    const [searchQuery, setSearchQuery] = useState("");
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const searchInputRef = useRef<HTMLInputElement>(null);
+    const searchDropdownRef = useRef<HTMLDivElement>(null);
+
+    const searchIndex = [
+        // Main Navigation
+        { id: 'dashboard', title: t('sidebar.dashboard') || 'Dashboard Overview', path: '/dashboard', icon: LayoutDashboard, desc: 'View your main analytics and statistics' },
+        { id: 'scanner', title: t('sidebar.scanner') || 'AI Diagnostics Scanner', path: '/scanner', icon: Scan, desc: 'Scan plants for diseases and get instant results' },
+        { id: 'history', title: t('sidebar.history') || 'Mission Logs', path: '/history', icon: History, desc: 'View past diagnostic history and reports' },
+        { id: 'workspace', title: t('sidebar.workspace') || 'Workspace', path: '/workspace', icon: FolderKanban, desc: 'Manage your active projects and tasks' },
+        
+        // Settings & Profile
+        { id: 'profile', title: t('profile.personalProfile') || 'Personal Profile', path: '/profile', icon: User, desc: 'Manage your personal account details' },
+        { id: 'language', title: t('profile.language') || 'Language Settings', path: '/profile?tab=language', icon: Languages, desc: 'Change the application language' },
+        { id: 'privacy', title: t('profile.privacyGrid') || 'Privacy & Security', path: '/profile?tab=privacy', icon: Lock, desc: 'Manage your data privacy and security' },
+        { id: 'theme', title: t('profile.theme') || 'Appearance & Theme', path: '/profile?tab=theme', icon: Sliders, desc: 'Customize the visual look of the app' },
+        { id: 'addresses', title: t('profile.addresses') || 'Saved Locations', path: '/profile?tab=addresses', icon: MapPin, desc: 'Manage your saved addresses and farms' },
+        { id: 'reminders', title: t('profile.reminders') || 'Notification Preferences', path: '/profile?tab=reminders', icon: Bell, desc: 'Configure when and how you are alerted' },
+        { id: 'scannerSettings', title: t('profile.scannerSettings') || 'Scanner Configuration', path: '/profile?tab=scannerSettings', icon: Settings, desc: 'Adjust AI model and camera settings' },
+        { id: 'aboutDeveloper', title: t('profile.aboutDeveloper') || 'About Developer', path: '/profile?tab=aboutDeveloper', icon: Sparkles, desc: 'Learn more about the creators' },
+
+        // Activity
+        { id: 'review', title: t('sidebar.review') || 'My Reviews', path: '/activity/review', icon: MessageSquare, desc: 'View your submitted feedback and ratings' },
+        { id: 'qa', title: t('sidebar.qa') || 'Q&A Forum', path: '/activity/qa', icon: HelpCircle, desc: 'Ask questions and help the community' },
+
+        // Quick Actions
+        { id: 'update', title: 'Check for Updates', action: 'update', icon: RefreshCw, desc: 'Sync with the central matrix for the latest algorithms' },
+        { id: 'logout', title: t('sidebar.logout') || 'Terminate Session', action: 'logout', icon: LogOut, desc: 'Securely completely exit your current session' }
+    ];
+
+    const filteredSearch = searchIndex.filter(item => 
+        item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        item.desc.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     useEffect(() => {
-        function handleKeyDown(event: KeyboardEvent) {
-            if (event.key === 'Escape') {
+        function handleGlobalKeyDown(e: KeyboardEvent) {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInputRef.current?.focus();
+            }
+            if (e.key === 'Escape') {
                 setShowNotifications(false);
+                setIsSearchOpen(false);
             }
         }
-        document.addEventListener("keydown", handleKeyDown);
-        return () => document.removeEventListener("keydown", handleKeyDown);
+        document.addEventListener("keydown", handleGlobalKeyDown);
+        return () => document.removeEventListener("keydown", handleGlobalKeyDown);
     }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (searchDropdownRef.current && !searchDropdownRef.current.contains(e.target as Node) &&
+                searchInputRef.current && !searchInputRef.current.contains(e.target as Node)) {
+                setIsSearchOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    interface SearchItem {
+        id: string;
+        title: string;
+        path?: string;
+        action?: string;
+        desc: string;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        icon: any;
+    }
+
+    const handleSearchSelect = (item: SearchItem) => {
+        setSearchQuery("");
+        setIsSearchOpen(false);
+        if (item.action === 'logout') {
+            logout();
+        } else if (item.action === 'update') {
+            addNotification({
+                title: t('notifications.newUpdate') || "Sync Protocol Initiated",
+                description: t('notifications.updateDesc') || "Connecting to central matrix to download latest botanical algorithms.",
+                type: 'update'
+            });
+        } else if (item.path) {
+            router.push(item.path);
+        }
+    };
+
+    const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (filteredSearch.length > 0) {
+                handleSearchSelect(filteredSearch[0]);
+            }
+        }
+    };
+    // ----------------------------
 
     const formatTime = (dateString: string) => {
         const date = new Date(dateString);
@@ -59,33 +150,93 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
             {/* Search Bar - hidden on very small screens */}
             <div className="relative w-full max-w-[450px] group hidden md:block">
                 <Search className={cn(
-                    "absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4",
+                    "absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 z-10",
                     "text-pink-500/60 group-focus-within:text-pink-400 transition-colors"
                 )} />
                 <input
+                    ref={searchInputRef}
                     type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setIsSearchOpen(true);
+                    }}
+                    onFocus={() => setIsSearchOpen(true)}
+                    onKeyDown={handleSearchKeyDown}
                     placeholder={t('navbar.search')}
                     className={cn(
                         "w-full bg-input border border-border rounded-2xl py-3 group-hover:bg-white/10 dark:group-hover:bg-white/5",
                         "pl-12 pr-6 text-sm font-bold text-foreground placeholder:text-slate-500",
                         "focus:ring-4 focus:ring-pink-500/10 focus:bg-white/10 dark:focus:bg-white/5",
-                        "focus:border-pink-500/20 transition-all outline-none shadow-inner"
+                        "focus:border-pink-500/20 transition-all outline-none shadow-inner relative z-10"
                     )}
                 />
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                    <span className={cn(
-                        "px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10",
-                        "text-[10px] text-slate-400 dark:text-slate-500 font-black"
-                    )}>
-                        ⌘
-                    </span>
-                    <span className={cn(
-                        "px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10",
-                        "text-[10px] text-slate-400 dark:text-slate-500 font-black"
-                    )}>
-                        K
-                    </span>
-                </div>
+                
+                {/* Keyboard Shortcut Hint */}
+                {!searchQuery && (
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10 pointer-events-none">
+                        <span className={cn(
+                            "px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10",
+                            "text-[10px] text-slate-400 dark:text-slate-500 font-black"
+                        )}>
+                            ⌘
+                        </span>
+                        <span className={cn(
+                            "px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10",
+                            "text-[10px] text-slate-400 dark:text-slate-500 font-black"
+                        )}>
+                            K
+                        </span>
+                    </div>
+                )}
+
+                {/* Search Dropdown */}
+                <AnimatePresence>
+                    {isSearchOpen && searchQuery.length > 0 && (
+                        <motion.div
+                            ref={searchDropdownRef}
+                            initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                            className="absolute top-14 left-0 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 overflow-hidden"
+                        >
+                            <div className="max-h-[350px] overflow-y-auto p-2 space-y-1">
+                                {filteredSearch.length > 0 ? (
+                                    filteredSearch.map((item) => {
+                                        const Icon = item.icon;
+                                        return (
+                                            <button
+                                                key={item.id}
+                                                onClick={() => handleSearchSelect(item)}
+                                                className="w-full text-left flex items-start gap-4 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group/item focus:outline-none focus:bg-slate-50 dark:focus:bg-slate-800/50"
+                                            >
+                                                <div className="p-2.5 bg-pink-50 dark:bg-pink-500/10 rounded-xl text-pink-500 group-hover/item:bg-pink-100 dark:group-hover/item:bg-pink-500/20 transition-colors flex-shrink-0">
+                                                    <Icon className="w-5 h-5" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                                                        {item.title}
+                                                    </h4>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">
+                                                        {item.desc}
+                                                    </p>
+                                                </div>
+                                            </button>
+                                        );
+                                    })
+                                ) : (
+                                    <div className="p-6 text-center">
+                                        <Search className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white">No results found</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                            Try searching for &quot;Scanner&quot;, &quot;History&quot;, or &quot;Dashboard&quot;.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
             <div className="flex items-center gap-2 sm:gap-6">

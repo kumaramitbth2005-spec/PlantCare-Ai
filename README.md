@@ -14,14 +14,13 @@ PlantCare AI is a comprehensive platform designed for farmers, researchers, and 
 
 ```mermaid
 graph TD
-    User(("User")) -->|Interacts| Frontend[Next.js Frontend]
+    User((User)) -->|Interacts| Frontend[Next.js Frontend]
     Frontend -->|API Requests| Backend[Node.js Backend]
     Backend -->|Model Inference| AI[Python AI Service]
     Backend -->|Data Persistence| DB[(MongoDB Database)]
     AI -->|Predicts| Backend
     Backend -->|Results| Frontend
 ```
-![alt text](image.png)
 
 ## 🛠️ Tech Stack
 

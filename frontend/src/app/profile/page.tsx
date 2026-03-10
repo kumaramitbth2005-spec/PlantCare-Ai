@@ -15,7 +15,6 @@ import {
     Languages,
     RefreshCw,
     LogOut,
-    ChevronDown,
     Settings,
     Sliders,
     Sparkles,
@@ -51,10 +50,10 @@ function ProfileContent() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const searchParams = useSearchParams();
-    const [activeTab, setActiveTab] = useState<
-        'profile' | 'addresses' | 'reminders' | 'language' | 'privacy' | 'scannerSettings' | 'theme' | 'aboutDeveloper'
-    >(
-        (searchParams.get('tab') as any) || 'profile'
+    type TabType = 'profile' | 'addresses' | 'reminders' | 'language' | 'privacy' | 'scannerSettings' | 'theme' | 'aboutDeveloper';
+    
+    const [activeTab, setActiveTab] = useState<TabType>(
+        (searchParams.get('tab') as TabType) || 'profile'
     );
 
     useEffect(() => {
@@ -63,7 +62,7 @@ function ProfileContent() {
             tab &&
             ['profile', 'addresses', 'reminders', 'language', 'privacy', 'scannerSettings', 'theme', 'aboutDeveloper'].includes(tab)
         ) {
-            setActiveTab(tab as any);
+            setActiveTab(tab as TabType);
         }
     }, [searchParams]);
 
@@ -483,13 +482,7 @@ function ProfileContent() {
         }
     };
 
-    const triggerUpdate = () => {
-        addNotification({
-            title: t('notifications.newUpdate'),
-            description: t('notifications.updateDesc'),
-            type: 'update'
-        });
-    };
+
 
     if (!user) return null; // Should be handled by AuthProvider redirect
 

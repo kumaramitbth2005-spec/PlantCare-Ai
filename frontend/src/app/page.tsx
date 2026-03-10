@@ -6,8 +6,6 @@ import {
   Leaf,
   Scan,
   History,
-  MessageSquare,
-  ChevronRight,
   ArrowRight,
   Menu,
   X,
@@ -17,8 +15,7 @@ import {
   Droplets,
   Trophy,
   Mail,
-  Phone,
-  MapPin
+  Phone
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -231,7 +228,7 @@ export default function LandingPage() {
                 Perfectly Responsive <br />on Every Device.
               </h2>
               <p className="text-lg md:text-xl font-bold text-pink-100 max-w-2xl mx-auto mb-10 leading-relaxed uppercase tracking-tighter">
-                Whether you're in the garden with your phone or at your desk with a widescreen Retina display, PlantCare adapts perfectly to your viewing matrix.
+                Whether you&apos;re in the garden with your phone or at your desk with a widescreen Retina display, PlantCare adapts perfectly to your viewing matrix.
               </p>
               <div className="flex flex-wrap items-center justify-center gap-10">
                 <div className="flex flex-col items-center">

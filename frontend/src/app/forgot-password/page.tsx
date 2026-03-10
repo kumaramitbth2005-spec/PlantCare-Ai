@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, ArrowRight, ShieldCheck, AlertCircle, KeyRound, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, ArrowRight, ShieldCheck, AlertCircle, KeyRound, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/AuthContext";
 import { useLanguage } from "@/lib/LanguageContext";
@@ -12,10 +12,11 @@ export default function ForgotPasswordPage() {
     const { forgotPassword, resetPassword } = useAuth();
     const { t } = useLanguage();
 
-    const [step, setStep] = useState(1); // 1: Email, 2: OTP & New Password, 3: Success
-    const [email, setEmail] = useState("");
+    const [step, setStep] = useState(1); // 1: Contact, 2: OTP & New Password, 3: Success
+    const [contact, setContact] = useState("");
     const [otp, setOtp] = useState("");
     const [newPassword, setNewPassword] = useState("");
+    const [showNewPassword, setShowNewPassword] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
@@ -24,7 +25,7 @@ export default function ForgotPasswordPage() {
         setError("");
         setLoading(true);
         try {
-            await forgotPassword(email);
+            await forgotPassword(contact);
             setStep(2);
         } catch (err) {
             const error = err as Error;
@@ -86,7 +87,7 @@ export default function ForgotPasswordPage() {
                         {t('auth.resetPassword')}
                     </h1>
                     <p className="text-slate-400 font-bold mb-10 text-sm">
-                        {step === 1 ? "Enter your email to receive a secure OTP link." : step === 2 ? t('auth.otpSent') : t('auth.passwordResetSuccess')}
+                        {step === 1 ? "Enter your email or phone number to receive a secure OTP link." : step === 2 ? t('auth.otpSent') : t('auth.passwordResetSuccess')}
                     </p>
 
                     <AnimatePresence mode="wait">
@@ -110,7 +111,7 @@ export default function ForgotPasswordPage() {
                             >
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">
-                                        {t('auth.email')}
+                                        Email or Phone Number
                                     </label>
                                     <div className="relative group">
                                         <Mail
@@ -120,11 +121,11 @@ export default function ForgotPasswordPage() {
                                             )}
                                         />
                                         <input
-                                            type="email"
+                                            type="text"
                                             required
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            placeholder="researcher@plantcare.ai"
+                                            value={contact}
+                                            onChange={(e) => setContact(e.target.value)}
+                                            placeholder="researcher@plantcare.ai / 9876543210"
                                             className={cn(
                                                 "w-full bg-white/5 border border-white/5 rounded-2xl py-4",
                                                 "pl-14 pr-6 text-sm font-bold text-white placeholder:text-slate-600",
@@ -219,18 +220,25 @@ export default function ForgotPasswordPage() {
                                             )}
                                         />
                                         <input
-                                            type="password"
+                                            type={showNewPassword ? "text" : "password"}
                                             required
                                             value={newPassword}
                                             onChange={(e) => setNewPassword(e.target.value)}
                                             placeholder="••••••••"
                                             className={cn(
                                                 "w-full bg-white/5 border border-white/5 rounded-2xl py-4",
-                                                "pl-14 pr-6 text-sm font-bold text-white placeholder:text-slate-600",
+                                                "pl-14 pr-12 text-sm font-bold text-white placeholder:text-slate-600",
                                                 "focus:ring-4 focus:ring-pink-500/10 outline-none transition-all",
                                                 "focus:bg-white/10"
                                             )}
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                            className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-pink-500 transition-colors"
+                                        >
+                                            {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                        </button>
                                     </div>
                                 </div>
 

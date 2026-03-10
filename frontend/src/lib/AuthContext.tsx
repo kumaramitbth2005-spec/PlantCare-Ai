@@ -131,9 +131,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    const forgotPassword = async (email: string) => {
+    const forgotPassword = async (contact: string) => {
         try {
-            await axios.post(`${API_URL}/forgotPassword`, { email });
+            await axios.post(`${API_URL}/forgotPassword`, { contact });
         } catch (err: unknown) {
             if (axios.isAxiosError(err)) {
                 throw new Error(err.response?.data?.message || 'Failed to send OTP');
