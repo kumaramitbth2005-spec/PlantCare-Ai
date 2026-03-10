@@ -108,6 +108,74 @@ function ProfileContent() {
 
     const [dailyRoutineContent, setDailyRoutineContent] = useState(user?.dailyRoutine ?? '');
 
+    // --- Scanner & Privacy State ---
+    const [scannerSettings, setScannerSettings] = useState({
+        cameraOption: user?.scannerSettings?.cameraOption ?? true,
+        autoPlantDetection: user?.scannerSettings?.autoPlantDetection ?? true,
+        saveInGoogleDrive: user?.scannerSettings?.saveInGoogleDrive ?? false
+    });
+
+    const [privacyGrid, setPrivacyGrid] = useState({
+        notifications: user?.privacyGrid?.notifications ?? true,
+        dataEncryption: user?.privacyGrid?.dataEncryption ?? true
+    });
+
+    const [addresses, setAddresses] = useState(user?.addresses || []);
+    const [isAddingAddress, setIsAddingAddress] = useState(false);
+    const [newAddress, setNewAddress] = useState({ type: 'home', street: '', city: '', state: '', zip: '' });
+
+    const handleUpdateScanner = async (key: keyof typeof scannerSettings) => {
+        const updated = { ...scannerSettings, [key]: !scannerSettings[key] };
+        setScannerSettings(updated);
+        try {
+            await updateProfile({ scannerSettings: updated });
+            addNotification({ title: 'Scanner Updated', description: `${key} preference saved.`, type: 'info' });
+        } catch (err) {
+            addNotification({ title: 'Update Failed', description: 'Could not save scanner settings.', type: 'alert' });
+        }
+    };
+
+    const handleUpdatePrivacy = async (key: keyof typeof privacyGrid) => {
+        const updated = { ...privacyGrid, [key]: !privacyGrid[key] };
+        setPrivacyGrid(updated);
+        try {
+            await updateProfile({ privacyGrid: updated });
+            addNotification({ title: 'Privacy Updated', description: 'Your security preferences have been synchronized.', type: 'info' });
+        } catch (err) {
+            addNotification({ title: 'Update Failed', description: 'Could not save privacy settings.', type: 'alert' });
+        }
+    };
+
+    const handleAddAddress = async () => {
+        const updatedAddresses = [...addresses, { ...newAddress, isDefault: addresses.length === 0 }];
+        try {
+            setIsSyncing(true);
+            await updateProfile({ addresses: updatedAddresses });
+            setAddresses(updatedAddresses);
+            setIsAddingAddress(false);
+            setNewAddress({ type: 'home', street: '', city: '', state: '', zip: '' });
+            addNotification({ title: 'Node Registered', description: 'New shipping node has been added to the registry.', type: 'update' });
+        } catch (err) {
+            addNotification({ title: 'Failed', description: 'Could not add address.', type: 'alert' });
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
+    const handleDeleteAddress = async (index: number) => {
+        const updatedAddresses = addresses.filter((_: any, i: number) => i !== index);
+        try {
+            setIsSyncing(true);
+            await updateProfile({ addresses: updatedAddresses });
+            setAddresses(updatedAddresses);
+            addNotification({ title: 'Node Deleted', description: 'Node removed from registry.', type: 'info' });
+        } catch (err) {
+            addNotification({ title: 'Failed', description: 'Could not delete address.', type: 'alert' });
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
     const handleSavePlantCare = async () => {
         try {
             setIsSyncing(true);
@@ -527,8 +595,28 @@ function ProfileContent() {
                 lastName: user.lastName,
                 contactNumber: user.contactNumber,
                 email: user.email,
-                address: user.address || ""
+                address: user.address || "",
+                scannerSettings: {
+                    cameraOption: user.scannerSettings?.cameraOption ?? true,
+                    autoPlantDetection: user.scannerSettings?.autoPlantDetection ?? true,
+                    saveInGoogleDrive: user.scannerSettings?.saveInGoogleDrive ?? false
+                },
+                privacyGrid: {
+                    notifications: user.privacyGrid?.notifications ?? true,
+                    dataEncryption: user.privacyGrid?.dataEncryption ?? true
+                },
+                addresses: user.addresses || []
             });
+            setScannerSettings({
+                cameraOption: user.scannerSettings?.cameraOption ?? true,
+                autoPlantDetection: user.scannerSettings?.autoPlantDetection ?? true,
+                saveInGoogleDrive: user.scannerSettings?.saveInGoogleDrive ?? false
+            });
+            setPrivacyGrid({
+                notifications: user.privacyGrid?.notifications ?? true,
+                dataEncryption: user.privacyGrid?.dataEncryption ?? true
+            });
+            setAddresses(user.addresses || []);
         }
     }, [user]);
 
@@ -824,9 +912,18 @@ function ProfileContent() {
                                                 <p className="text-xs text-slate-400 font-bold mt-1">{t('profile.notifDesc')}</p>
                                             </div>
                                         </div>
-                                        <div className="w-14 h-8 bg-pink-500 rounded-full relative cursor-pointer shadow-lg shadow-pink-500/20">
-                                            <div className="absolute right-1 top-1 w-6 h-6 bg-white rounded-full shadow-md" />
-                                        </div>
+                                        <button
+                                            onClick={() => handleUpdatePrivacy('notifications')}
+                                            className={cn(
+                                                "w-14 h-8 rounded-full relative cursor-pointer transition-all",
+                                                privacyGrid.notifications ? "bg-pink-500 shadow-lg shadow-pink-500/20" : "bg-slate-200 dark:bg-white/10"
+                                            )}
+                                        >
+                                            <div className={cn(
+                                                "absolute top-1 w-6 h-6 bg-white rounded-full shadow-md transition-all",
+                                                privacyGrid.notifications ? "right-1" : "left-1"
+                                            )} />
+                                        </button>
                                     </div>
 
                                     <div className="flex items-center justify-between p-6 bg-slate-50/50 dark:bg-pink-500/5 rounded-[2rem] border border-slate-100 dark:border-pink-500/10 group transition-all">
@@ -839,9 +936,18 @@ function ProfileContent() {
                                                 <p className="text-xs text-slate-400 font-bold mt-1">End-to-end neural data protection.</p>
                                             </div>
                                         </div>
-                                        <div className="w-14 h-8 bg-pink-500 rounded-full relative cursor-pointer shadow-lg shadow-pink-500/20">
-                                            <div className="absolute right-1 top-1 w-6 h-6 bg-white rounded-full shadow-md" />
-                                        </div>
+                                        <button
+                                            onClick={() => handleUpdatePrivacy('dataEncryption')}
+                                            className={cn(
+                                                "w-14 h-8 rounded-full relative cursor-pointer transition-all",
+                                                privacyGrid.dataEncryption ? "bg-pink-500 shadow-lg shadow-pink-500/20" : "bg-slate-200 dark:bg-white/10"
+                                            )}
+                                        >
+                                            <div className={cn(
+                                                "absolute top-1 w-6 h-6 bg-white rounded-full shadow-md transition-all",
+                                                privacyGrid.dataEncryption ? "right-1" : "left-1"
+                                            )} />
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -862,24 +968,42 @@ function ProfileContent() {
                                             <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Manage your shipping logs</p>
                                         </div>
                                     </div>
-                                    <button className="flex items-center gap-2 px-6 py-3 bg-pink-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-pink-500/20 active:scale-95 transition-all">
+                                    <button
+                                        onClick={() => setIsAddingAddress(true)}
+                                        className="flex items-center gap-2 px-6 py-3 bg-pink-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-pink-500/20 active:scale-95 transition-all"
+                                    >
                                         <Save className="w-4 h-4" />
                                         {t('profile.addAddress')}
                                     </button>
                                 </div>
 
+                                </div>
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {/* Mock address list */}
-                                    <div className="p-6 bg-slate-50/50 dark:bg-pink-500/5 rounded-[2rem] border-2 border-pink-500/20 relative group">
-                                        <div className="absolute top-4 right-4 flex gap-2">
-                                            <span className="px-3 py-1 bg-pink-500 text-white text-[8px] font-black uppercase rounded-full tracking-widest">Default</span>
+                                    {addresses.map((addr: any, index: number) => (
+                                        <div key={index} className="p-6 bg-slate-50/50 dark:bg-pink-500/5 rounded-[2rem] border-2 border-pink-500/20 relative group">
+                                            <div className="absolute top-4 right-4 flex gap-2">
+                                                {addr.isDefault && <span className="px-3 py-1 bg-pink-500 text-white text-[8px] font-black uppercase rounded-full tracking-widest">Default</span>}
+                                                <button
+                                                    onClick={() => handleDeleteAddress(index)}
+                                                    className="p-1 hover:text-rose-500 transition-colors"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight mb-2">{addr.type} Network</h4>
+                                            <p className="text-xs text-slate-500 font-bold leading-relaxed">
+                                                {addr.street}<br />
+                                                {addr.city}, {addr.state} {addr.zip}
+                                            </p>
                                         </div>
-                                        <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight mb-2">Home Network</h4>
-                                        <p className="text-xs text-slate-500 font-bold leading-relaxed">
-                                            Neural Street 123, Matrix City<br />
-                                            Silicon Valley Core, 94043
-                                        </p>
-                                    </div>
+                                    ))}
+                                    {addresses.length === 0 && (
+                                        <div className="col-span-full py-12 text-center bg-slate-50/30 dark:bg-white/5 rounded-[2.5rem] border-2 border-dashed border-slate-200 dark:border-white/10">
+                                            <MapPin className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                                            <p className="text-sm font-bold text-slate-400">No nodes registered in the matrix.</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </motion.div>
@@ -1074,10 +1198,10 @@ function ProfileContent() {
 
                                 <div className="space-y-8">
                                     {[
-                                        { title: "Camera Option", desc: "Select primary neural input device", icon: Camera },
-                                        { title: "Auto Plant Detection", desc: "Real-time specimen identification", icon: Search },
-                                        { title: "Save in Google Drive", desc: "Backup neural scans to cloud matrix", icon: Save }
-                                    ].map((opt, i) => (
+                                        { title: "Camera Option", desc: "Select primary neural input device", icon: Camera, key: 'cameraOption' as const },
+                                        { title: "Auto Plant Detection", desc: "Real-time specimen identification", icon: Search, key: 'autoPlantDetection' as const },
+                                        { title: "Save in Google Drive", desc: "Backup neural scans to cloud matrix", icon: Save, key: 'saveInGoogleDrive' as const }
+                                    ].map((opt) => (
                                         <div key={opt.title} className="flex items-center justify-between p-6 bg-slate-50 dark:bg-pink-500/5 rounded-[2rem] border border-slate-100 dark:border-pink-500/10 transition-all hover:bg-white dark:hover:bg-pink-500/10 group">
                                             <div className="flex items-center gap-5">
                                                 <div className="p-3 bg-pink-500/10 text-pink-500 rounded-2xl group-hover:scale-110 transition-transform">
@@ -1088,15 +1212,18 @@ function ProfileContent() {
                                                     <p className="text-[10px] text-slate-500 font-bold tracking-widest uppercase mt-1">{opt.desc}</p>
                                                 </div>
                                             </div>
-                                            <div className={cn(
-                                                "w-14 h-8 rounded-full relative cursor-pointer transition-all",
-                                                i < 2 ? "bg-pink-500 shadow-lg shadow-pink-500/20" : "bg-slate-200 dark:bg-white/10"
-                                            )}>
+                                            <button
+                                                onClick={() => handleUpdateScanner(opt.key)}
+                                                className={cn(
+                                                    "w-14 h-8 rounded-full relative cursor-pointer transition-all",
+                                                    scannerSettings[opt.key] ? "bg-pink-500 shadow-lg shadow-pink-500/20" : "bg-slate-200 dark:bg-white/10"
+                                                )}
+                                            >
                                                 <div className={cn(
                                                     "absolute top-1 w-6 h-6 bg-white rounded-full shadow-md transition-all",
-                                                    i < 2 ? "right-1" : "left-1"
+                                                    scannerSettings[opt.key] ? "right-1" : "left-1"
                                                 )} />
-                                            </div>
+                                            </button>
                                         </div>
                                     ))}
                                 </div>
@@ -1429,6 +1556,80 @@ function ProfileContent() {
                             <button disabled={isDeleting} onClick={handleDeletePhoto} className="flex-1 py-4 bg-rose-500 shadow-xl shadow-rose-500/20 rounded-2xl font-black text-white text-xs uppercase tracking-widest hover:bg-rose-600 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50">
                                 {isDeleting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                                 {isDeleting ? "Deleting..." : "Delete"}
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+            {/* Add Address Modal */}
+            {isAddingAddress && (
+                <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md">
+                    <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-pink-500/20 rounded-[2.5rem] p-8 w-full max-w-md shadow-2xl flex flex-col relative overflow-hidden">
+                        <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-pink-500 to-rose-600" />
+                        <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-6">Register New Node</h3>
+
+                        <div className="space-y-4">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Node Type</label>
+                                <select
+                                    value={newAddress.type}
+                                    onChange={(e) => setNewAddress({ ...newAddress, type: e.target.value })}
+                                    className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-pink-500"
+                                >
+                                    <option value="home">Home Network</option>
+                                    <option value="work">Work Network</option>
+                                    <option value="other">Other Outpost</option>
+                                </select>
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Street Address</label>
+                                <input
+                                    type="text"
+                                    value={newAddress.street}
+                                    onChange={(e) => setNewAddress({ ...newAddress, street: e.target.value })}
+                                    className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-pink-500"
+                                    placeholder="Neural Street 123"
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">City</label>
+                                    <input
+                                        type="text"
+                                        value={newAddress.city}
+                                        onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
+                                        className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-pink-500"
+                                        placeholder="Matrix City"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">State</label>
+                                    <input
+                                        type="text"
+                                        value={newAddress.state}
+                                        onChange={(e) => setNewAddress({ ...newAddress, state: e.target.value })}
+                                        className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-pink-500"
+                                        placeholder="CA"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">ZIP Code</label>
+                                <input
+                                    type="text"
+                                    value={newAddress.zip}
+                                    onChange={(e) => setNewAddress({ ...newAddress, zip: e.target.value })}
+                                    className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-pink-500"
+                                    placeholder="94043"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-4 w-full mt-10">
+                            <button onClick={() => setIsAddingAddress(false)} className="flex-1 py-4 bg-slate-100 dark:bg-white/5 rounded-2xl font-black text-slate-900 dark:text-white text-xs uppercase tracking-widest hover:bg-slate-200 dark:hover:bg-white/10 transition-all active:scale-95">Cancel</button>
+                            <button onClick={handleAddAddress} className="flex-1 py-4 bg-pink-500 shadow-xl shadow-pink-500/20 rounded-2xl font-black text-white text-xs uppercase tracking-widest hover:bg-pink-600 transition-all active:scale-95 flex items-center justify-center gap-2">
+                                <Save className="w-4 h-4" />
+                                Save Node
                             </button>
                         </div>
                     </motion.div>

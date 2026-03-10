@@ -74,6 +74,15 @@ const userSchema = new mongoose.Schema({
     dailyRoutine: {
         type: String,
         default: ''
+    },
+    scannerSettings: {
+        cameraOption: { type: Boolean, default: true },
+        autoPlantDetection: { type: Boolean, default: true },
+        saveInGoogleDrive: { type: Boolean, default: false }
+    },
+    privacyGrid: {
+        notifications: { type: Boolean, default: true },
+        dataEncryption: { type: Boolean, default: true }
     }
 }, { timestamps: true });
 
