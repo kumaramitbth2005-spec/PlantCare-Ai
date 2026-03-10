@@ -1,0 +1,135 @@
+Herbaceous Plants:
+Basil (Tulsi) - Ocimum sanctum
+Mint (Pudina) - Mentha
+Coriander (Dhania) - Coriandrum sativum
+Spinach (Palak) - Spinacia oleracea
+Lettuce - Lactuca sativa
+Tomato (Tamatar) - Solanum lycopersicum
+Chili (Mirchi) - Capsicum annuum
+Brinjal (Baingan) - Solanum melongena
+Fenugreek (Methi) - Trigonella foenum-graecum
+Mustard (Sarson) - Brassica juncea
+Wheat (Gehu) - Triticum aestivum
+Rice (Dhan) - Oryza sativa
+Marigold (Genda) - Tagetes
+Rose (Gulab) - Rosa
+Jasmine (Chameli) - Jasminum
+
+PLANT DISEASES (बीमारियाँ)
+Fungal Diseases:
+Powdery Mildew - White powdery spots on leaves
+Downy Mildew - Yellow patches with grayish mold
+Rust - Orange-brown pustules on leaves
+Leaf Spot - Brown/black spots with yellow halos
+Anthracnose - Dark, sunken lesions
+Blight - Rapid browning and dying of leaves
+Fusarium Wilt - Yellowing and wilting
+Root Rot - Decaying roots, yellowing leaves
+Damping Off - Seedling collapse at soil line
+Smut - Black powdery masses on grains
+
+Bacterial Diseases:
+Bacterial Leaf Spot - Water-soaked spots
+Bacterial Wilt - Sudden wilting
+Crown Gall - Tumor-like growths
+Fire Blight - Blackened, scorched appearance
+Soft Rot - Watery, soft decay
+
+Viral Diseases:
+Mosaic Virus - Mottled yellow and green patterns
+Leaf Curl - Curling and distortion
+Yellow Vein Mosaic - Yellow vein patterns
+Ring Spot - Circular yellow rings
+Stunting - Reduced growth
+
+PATHOGENS (रोग पैदा करने वाले)
+Bacteria (बैक्टीरिया):
+Xanthomonas campestris - Leaf spot
+Pseudomonas syringae - Blight
+Erwinia carotovora - Soft rot
+Agrobacterium tumefaciens - Crown gall
+Ralstonia solanacearum - Bacterial wilt
+Clavibacter michiganensis - Canker
+Pectobacterium carotovorum - Soft rot
+Streptomyces scabies - Potato scab
+Xylella fastidiosa - Leaf scorch
+Pseudomonas fluorescens - Root rot
+
+Fungi (फफूंद):
+Erysiphe cichoracearum - Powdery mildew
+Peronospora parasitica - Downy mildew
+Puccinia graminis - Rust
+Alternaria solani - Leaf spot
+Colletotrichum lindemuthianum - Anthracnose
+Phytophthora infestans - Late blight
+Fusarium oxysporum - Wilt
+Rhizoctonia solani - Root rot
+Sclerotinia sclerotiorum - White mold
+Botrytis cinerea - Gray mold
+
+Viruses (वायरस):
+Tobacco Mosaic Virus (TMV)
+Cucumber Mosaic Virus (CMV)
+Tomato Yellow Leaf Curl Virus (TYLCV)
+Potato Virus Y (PVY)
+Bean Common Mosaic Virus (BCMV)
+
+PESTS (कीट/नुकसान करने वाले)
+Aphids - Small green/black insects
+Whiteflies - Tiny white flying insects
+Spider Mites - Tiny red spiders, webbing
+Thrips - Tiny slender insects
+Caterpillars - Leaf-eating larvae
+Leaf Miners - Tunnels in leaves
+Mealybugs - White cottony masses
+Scale Insects - Brown bumps on stems
+Nematodes - Root-knotting worms
+Cutworms - Cut seedlings at base
+Grasshoppers - Leaf chewers
+Beetles - Leaf skeletonizers
+Earwigs - Night leaf feeders
+Slugs/Snails - Slime trails, leaf holes
+Termites - Wood/stem damage
+
+SYMPTOM-BASED DIAGNOSIS CHART
+Symptoms	Possible Disease	Pathogen
+White powder on leaves	Powdery Mildew	Fungus
+Yellow leaves, wilting	Fusarium Wilt	Fungus
+Black spots, yellow halo	Leaf Spot	Fungus/Bacteria
+Curled leaves	Leaf Curl Virus	Virus
+Sticky leaves, ants	Aphids	Insect
+Holes in leaves	Caterpillars	Insect
+Yellow mosaic pattern	Mosaic Virus	Virus
+Water-soaked spots	Bacterial Spot	Bacteria
+Orange pustules	Rust	Fungus
+Cottony masses	Mealybugs	Insect
+
+TREATMENT RECOMMENDATIONS
+For Fungal Diseases:
+Neem oil spray (15ml/L water)
+Baking soda solution (5g/L water)
+Copper fungicide
+Remove affected leaves
+Improve air circulation
+Avoid overhead watering
+
+For Bacterial Diseases:
+Copper-based bactericide
+Remove infected plants
+Sterilize tools
+Crop rotation
+Resistant varieties
+
+For Viral Diseases:
+Remove infected plants
+Control insect vectors
+Use virus-free seeds
+Disinfect tools
+Plant resistant varieties
+
+For Pests:
+Neem oil spray
+Insecticidal soap
+Beneficial insects (Ladybugs)
+Yellow sticky traps
+Water spray for aphids
