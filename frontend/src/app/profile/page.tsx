@@ -50,7 +50,7 @@ function ProfileContent() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const searchParams = useSearchParams();
-    type TabType = 'profile' | 'addresses' | 'reminders' | 'language' | 'privacy' | 'scannerSettings' | 'theme' | 'aboutDeveloper';
+    type TabType = 'profile' | 'addresses' | 'reminders' | 'routine' | 'language' | 'privacy' | 'scannerSettings' | 'theme' | 'aboutDeveloper';
     
     const [activeTab, setActiveTab] = useState<TabType>(
         (searchParams.get('tab') as TabType) || 'profile'
@@ -60,7 +60,7 @@ function ProfileContent() {
         const tab = searchParams.get('tab');
         if (
             tab &&
-            ['profile', 'addresses', 'reminders', 'language', 'privacy', 'scannerSettings', 'theme', 'aboutDeveloper'].includes(tab)
+            ['profile', 'addresses', 'reminders', 'routine', 'language', 'privacy', 'scannerSettings', 'theme', 'aboutDeveloper'].includes(tab)
         ) {
             setActiveTab(tab as TabType);
         }
@@ -89,9 +89,58 @@ function ProfileContent() {
     const [imageDims, setImageDims] = useState<{ width: number, height: number } | null>(null);
     const previewContainerRef = useRef<HTMLDivElement>(null);
 
-    // --- Plant Reminder Toggles ---
-    const [waterReminderOn, setWaterReminderOn] = useState(true);
-    const [fertilizerReminderOn, setFertilizerReminderOn] = useState(false);
+    // --- Plant Care State ---
+    const [waterReminderOn, setWaterReminderOn] = useState(user?.plantReminders?.water?.enabled ?? true);
+    const [waterFrequency, setWaterFrequency] = useState(user?.plantReminders?.water?.frequency ?? 2);
+    const [lastWateredDate, setLastWateredDate] = useState<string>(
+        user?.plantReminders?.water?.lastTransmission 
+        ? new Date(user?.plantReminders?.water?.lastTransmission).toISOString().split('T')[0] 
+        : new Date().toISOString().split('T')[0]
+    );
+
+    const [fertilizerReminderOn, setFertilizerReminderOn] = useState(user?.plantReminders?.fertilizer?.enabled ?? false);
+    const [fertilizerFrequency, setFertilizerFrequency] = useState(user?.plantReminders?.fertilizer?.frequency ?? 'Monthly');
+    const [nextFertilizerDate, setNextFertilizerDate] = useState<string>(
+        user?.plantReminders?.fertilizer?.nextProtocol 
+        ? new Date(user?.plantReminders?.fertilizer?.nextProtocol).toISOString().split('T')[0] 
+        : new Date().toISOString().split('T')[0]
+    );
+
+    const [dailyRoutineContent, setDailyRoutineContent] = useState(user?.dailyRoutine ?? '');
+
+    const handleSavePlantCare = async () => {
+        try {
+            setIsSyncing(true);
+            await updateProfile({
+                plantReminders: {
+                    water: {
+                        enabled: waterReminderOn,
+                        frequency: Number(waterFrequency),
+                        lastTransmission: new Date(lastWateredDate)
+                    },
+                    fertilizer: {
+                        enabled: fertilizerReminderOn,
+                        frequency: fertilizerFrequency,
+                        nextProtocol: new Date(nextFertilizerDate)
+                    }
+                },
+                dailyRoutine: dailyRoutineContent
+            });
+            addNotification({
+                title: 'Settings Saved',
+                description: 'Your growth protocols have been synchronized.',
+                type: 'update'
+            });
+        } catch (err) {
+            addNotification({
+                title: 'Sync Failed',
+                description: 'Could not update your plant care settings.',
+                type: 'alert'
+            });
+        } finally {
+            setIsSyncing(false);
+        }
+    };
 
     const handleWaterToggle = () => {
         const next = !waterReminderOn;
@@ -99,7 +148,7 @@ function ProfileContent() {
         addNotification({
             title: next ? '💧 Water Reminder Activated' : '💧 Water Reminder Disabled',
             description: next
-                ? 'Hydration cycle alerts are now ON. You will be reminded every 2 days.'
+                ? `Hydration cycle alerts are now ON. You will be reminded every ${waterFrequency} days.`
                 : 'Water scheduling reminders have been turned off.',
             type: next ? 'update' : 'info'
         });
@@ -111,7 +160,7 @@ function ProfileContent() {
         addNotification({
             title: next ? '✨ Fertilization Reminder Activated' : '✨ Fertilization Reminder Disabled',
             description: next
-                ? 'Nutrient injection protocol alerts are now ON. Next scheduled: March 25.'
+                ? 'Nutrient injection protocol alerts are now ON.'
                 : 'Fertilization scheduling reminders have been turned off.',
             type: next ? 'update' : 'info'
         });
@@ -880,12 +929,23 @@ function ProfileContent() {
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Frequency</p>
-                                                <p className="text-sm font-black text-pink-500">Every 2 Days</p>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Frequency (Days)</p>
+                                                <input
+                                                    type="number"
+                                                    value={waterFrequency}
+                                                    onChange={(e) => setWaterFrequency(Number(e.target.value))}
+                                                    className="bg-transparent text-sm font-black text-pink-500 w-full focus:outline-none"
+                                                    min="1"
+                                                />
                                             </div>
                                             <div className="p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Last Transmission</p>
-                                                <p className="text-sm font-black text-slate-400 italic">2 Hours Ago</p>
+                                                <input
+                                                    type="date"
+                                                    value={lastWateredDate}
+                                                    onChange={(e) => setLastWateredDate(e.target.value)}
+                                                    className="bg-transparent text-sm font-black text-slate-400 w-full focus:outline-none"
+                                                />
                                             </div>
                                         </div>
                                     </div>
@@ -920,14 +980,79 @@ function ProfileContent() {
                                         <div className={cn("grid grid-cols-2 gap-4 transition-opacity duration-300", fertilizerReminderOn ? "opacity-100" : "opacity-50")}>
                                             <div className="p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Frequency</p>
-                                                <p className="text-sm font-black text-slate-400">Monthly</p>
+                                                <input
+                                                    type="text"
+                                                    value={fertilizerFrequency}
+                                                    onChange={(e) => setFertilizerFrequency(e.target.value)}
+                                                    disabled={!fertilizerReminderOn}
+                                                    className="bg-transparent text-sm font-black text-slate-400 w-full focus:outline-none"
+                                                />
                                             </div>
                                             <div className="p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5">
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Next Protocol</p>
-                                                <p className="text-sm font-black text-slate-400">March 25</p>
+                                                <input
+                                                    type="date"
+                                                    value={nextFertilizerDate}
+                                                    onChange={(e) => setNextFertilizerDate(e.target.value)}
+                                                    disabled={!fertilizerReminderOn}
+                                                    className="bg-transparent text-sm font-black text-slate-400 w-full focus:outline-none"
+                                                />
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                                <div className="mt-10 flex justify-end gap-4">
+                                    <button
+                                        onClick={handleSavePlantCare}
+                                        disabled={isSyncing}
+                                        className="flex items-center gap-2 px-8 py-4 bg-pink-500 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all hover:scale-105 active:scale-95 disabled:opacity-50 shadow-lg shadow-pink-500/20"
+                                    >
+                                        <Save className="w-4 h-4" />
+                                        {isSyncing ? 'Synchronizing...' : 'Save Growth Protocols'}
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* Daily Routine Content */}
+                    {activeTab === 'routine' && (
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+                            <div className="glass-card p-10 bg-white/80 dark:bg-slate-900 border border-slate-100 dark:border-pink-500/10 shadow-xl rounded-[3rem]">
+                                <div className="flex items-center gap-4 mb-10 border-b border-slate-50 dark:border-pink-500/5 pb-6">
+                                    <div className="p-3 bg-pink-500 text-white rounded-2xl shadow-lg shadow-pink-500/20">
+                                        <Zap className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Daily Routine</h3>
+                                        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Your personalized plant care protocols</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <div className="p-8 bg-slate-50 dark:bg-pink-500/5 rounded-[2.5rem] border border-slate-100 dark:border-pink-500/10 transition-all hover:bg-white dark:hover:bg-pink-500/10">
+                                        <div className="mb-6">
+                                            <h4 className="text-lg font-black text-slate-900 dark:text-white tracking-tight mb-2">Care Rules & Schedule</h4>
+                                            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Define your automated routine rules here</p>
+                                        </div>
+                                        <textarea
+                                            value={dailyRoutineContent}
+                                            onChange={(e) => setDailyRoutineContent(e.target.value)}
+                                            placeholder="Example:&#10;Morning: Check soil moisture&#10;Evening: Mist leaves if humidity < 40%"
+                                            className="w-full h-64 p-6 bg-white/50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 text-sm focus:outline-none focus:ring-4 focus:ring-pink-500/10 resize-none font-medium placeholder:text-slate-300 dark:placeholder:text-slate-700 transition-all"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="mt-10 flex justify-end">
+                                    <button
+                                        onClick={handleSavePlantCare}
+                                        disabled={isSyncing}
+                                        className="flex items-center gap-2 px-8 py-4 bg-pink-500 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all hover:scale-105 active:scale-95 disabled:opacity-50 shadow-lg shadow-pink-500/20"
+                                    >
+                                        <Save className="w-4 h-4" />
+                                        {isSyncing ? 'Synchronizing...' : 'Save Routine'}
+                                    </button>
                                 </div>
                             </div>
                         </motion.div>

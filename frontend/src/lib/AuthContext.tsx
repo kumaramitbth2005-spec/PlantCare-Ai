@@ -20,6 +20,19 @@ type User = {
         healthyPlants: number;
         diseasedPlants: number;
     };
+    plantReminders?: {
+        water: {
+            enabled: boolean;
+            frequency: number;
+            lastTransmission: string | Date;
+        };
+        fertilizer: {
+            enabled: boolean;
+            frequency: string;
+            nextProtocol: string | Date;
+        };
+    };
+    dailyRoutine?: string;
 };
 
 type AuthContextType = {

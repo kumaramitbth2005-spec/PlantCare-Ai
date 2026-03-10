@@ -58,7 +58,23 @@ const userSchema = new mongoose.Schema({
     wishlist: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Product' // Assuming a Product model will exist or just IDs for now
-    }]
+    }],
+    plantReminders: {
+        water: {
+            enabled: { type: Boolean, default: true },
+            frequency: { type: Number, default: 2 }, // days
+            lastTransmission: { type: Date, default: Date.now }
+        },
+        fertilizer: {
+            enabled: { type: Boolean, default: false },
+            frequency: { type: String, default: 'Monthly' },
+            nextProtocol: { type: Date }
+        }
+    },
+    dailyRoutine: {
+        type: String,
+        default: ''
+    }
 }, { timestamps: true });
 
 // Hash password before saving
