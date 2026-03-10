@@ -145,6 +145,9 @@ function ProfileContent() {
 
     const [dailyRoutineContent, setDailyRoutineContent] = useState(user?.dailyRoutine ?? '');
 
+    const [waterReminderTime, setWaterReminderTime] = useState(user?.plantReminders?.water?.reminderTime ?? '09:00');
+    const [fertilizerReminderTime, setFertilizerReminderTime] = useState(user?.plantReminders?.fertilizer?.reminderTime ?? '09:00');
+
     // --- Scanner & Privacy State ---
     const [scannerSettings, setScannerSettings] = useState({
         cameraOption: user?.scannerSettings?.cameraOption ?? true,
@@ -221,12 +224,14 @@ function ProfileContent() {
                     water: {
                         enabled: waterReminderOn,
                         frequency: Number(waterFrequency),
-                        lastTransmission: new Date(lastWateredDate)
+                        lastTransmission: new Date(lastWateredDate),
+                        reminderTime: waterReminderTime
                     },
                     fertilizer: {
                         enabled: fertilizerReminderOn,
                         frequency: fertilizerFrequency,
-                        nextProtocol: new Date(nextFertilizerDate)
+                        nextProtocol: new Date(nextFertilizerDate),
+                        reminderTime: fertilizerReminderTime
                     }
                 },
                 dailyRoutine: dailyRoutineContent
@@ -644,6 +649,8 @@ function ProfileContent() {
                 },
                 addresses: user.addresses || []
             });
+            setWaterReminderTime(user.plantReminders?.water?.reminderTime ?? '09:00');
+            setFertilizerReminderTime(user.plantReminders?.fertilizer?.reminderTime ?? '09:00');
             setScannerSettings({
                 cameraOption: user.scannerSettings?.cameraOption ?? true,
                 autoPlantDetection: user.scannerSettings?.autoPlantDetection ?? true,
@@ -1106,6 +1113,15 @@ function ProfileContent() {
                                                     className="bg-transparent text-sm font-black text-slate-400 w-full focus:outline-none"
                                                 />
                                             </div>
+                                            <div className="p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 col-span-2">
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Reminder Time (Alarm)</p>
+                                                <input
+                                                    type="time"
+                                                    value={waterReminderTime}
+                                                    onChange={(e) => setWaterReminderTime(e.target.value)}
+                                                    className="bg-transparent text-sm font-black text-pink-500 w-full focus:outline-none"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
 
@@ -1155,6 +1171,16 @@ function ProfileContent() {
                                                     onChange={(e) => setNextFertilizerDate(e.target.value)}
                                                     disabled={!fertilizerReminderOn}
                                                     className="bg-transparent text-sm font-black text-slate-400 w-full focus:outline-none"
+                                                />
+                                            </div>
+                                            <div className="p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/5 col-span-2">
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Reminder Time (Alarm)</p>
+                                                <input
+                                                    type="time"
+                                                    value={fertilizerReminderTime}
+                                                    onChange={(e) => setFertilizerReminderTime(e.target.value)}
+                                                    disabled={!fertilizerReminderOn}
+                                                    className="bg-transparent text-sm font-black text-pink-500 w-full focus:outline-none"
                                                 />
                                             </div>
                                         </div>

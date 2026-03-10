@@ -25,11 +25,13 @@ type User = {
             enabled: boolean;
             frequency: number;
             lastTransmission: string | Date;
+            reminderTime: string;
         };
         fertilizer: {
             enabled: boolean;
             frequency: string;
             nextProtocol: string | Date;
+            reminderTime: string;
         };
     };
     dailyRoutine?: string;

@@ -63,12 +63,14 @@ const userSchema = new mongoose.Schema({
         water: {
             enabled: { type: Boolean, default: true },
             frequency: { type: Number, default: 2 }, // days
-            lastTransmission: { type: Date, default: Date.now }
+            lastTransmission: { type: Date, default: Date.now },
+            reminderTime: { type: String, default: "09:00" }
         },
         fertilizer: {
             enabled: { type: Boolean, default: false },
             frequency: { type: String, default: 'Monthly' },
-            nextProtocol: { type: Date }
+            nextProtocol: { type: Date },
+            reminderTime: { type: String, default: "09:00" }
         }
     },
     dailyRoutine: {

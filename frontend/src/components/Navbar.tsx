@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Search, Trash2, Clock, X, Menu, Zap, User, LayoutDashboard, Scan, History, FolderKanban, LogOut, MessageSquare, HelpCircle, Settings, RefreshCw, Sparkles, Languages, Lock, Sliders, MapPin } from "lucide-react";
+import { Bell, Search, Trash2, Clock, X, Menu, Zap, User, LayoutDashboard, Scan, History, FolderKanban, LogOut, MessageSquare, HelpCircle, Settings, RefreshCw, Sparkles, Languages, Lock, Sliders, MapPin, AlarmClock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
@@ -16,6 +16,49 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
     const { notifications, unreadCount, markAsRead, clearAll, addNotification } = useNotifications();
     const { user, logout } = useAuth();
     const [showNotifications, setShowNotifications] = useState(false);
+    
+    // --- Alarm Implementation ---
+    const [isAlarmActive, setIsAlarmActive] = useState(false);
+    
+    useEffect(() => {
+        if (!user || !user.plantReminders?.water?.enabled) return;
+
+        const checkAlarm = () => {
+            const now = new Date();
+            const lastWateredStr = user.plantReminders?.water?.lastTransmission;
+            if (!lastWateredStr) return;
+            
+            const lastWatered = new Date(lastWateredStr);
+            const frequency = user.plantReminders?.water?.frequency ?? 2;
+            const reminderTime = user.plantReminders?.water?.reminderTime || "09:00";
+            
+            // Calculate next watering date
+            const nextWateringDate = new Date(lastWatered);
+            nextWateringDate.setDate(lastWatered.getDate() + frequency);
+            
+            const [hours, minutes] = reminderTime.split(':').map(Number);
+            nextWateringDate.setHours(hours, minutes, 0, 0);
+
+            // If current time is past or equal to next watering date/time
+            if (now >= nextWateringDate) {
+                if (!isAlarmActive) {
+                    setIsAlarmActive(true);
+                    addNotification({
+                        title: "Hydration Protocol Alert",
+                        description: "The botanical matrix indicates your specimens require hydration immediately.",
+                        type: 'update'
+                    });
+                }
+            } else {
+                setIsAlarmActive(false);
+            }
+        };
+
+        const interval = setInterval(checkAlarm, 60000); // Check every minute
+        checkAlarm(); // Initial check
+
+        return () => clearInterval(interval);
+    }, [user, isAlarmActive, addNotification]);
     
     // --- Search Implementation ---
     const router = useRouter();
@@ -241,6 +284,30 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
 
             <div className="flex items-center gap-2 sm:gap-6">
                 <div className="flex items-center gap-2">
+                    {/* Alarm Clock */}
+                    {user?.plantReminders?.water?.enabled && (
+                        <div className="relative">
+                            <button
+                                className={cn(
+                                    "p-3 rounded-2xl transition-all relative group",
+                                    isAlarmActive 
+                                        ? "bg-pink-500 text-white shadow-lg shadow-pink-500/30 animate-pulse" 
+                                        : "hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-pink-400"
+                                )}
+                                onClick={() => router.push('/profile?tab=reminders')}
+                                title={isAlarmActive ? "Alarm Triggered: Hydration Required" : "Hydration Alarm Active"}
+                            >
+                                <AlarmClock className={cn("w-5 h-5", isAlarmActive && "animate-bounce")} />
+                                {isAlarmActive && (
+                                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-pink-500"></span>
+                                    </span>
+                                )}
+                            </button>
+                        </div>
+                    )}
+
                     <div className="relative">
                         <button
                             onClick={() => setShowNotifications(!showNotifications)}
