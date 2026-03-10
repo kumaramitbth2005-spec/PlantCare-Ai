@@ -67,12 +67,49 @@ function ProfileContent() {
     }, [searchParams]);
 
     // Form state
-    const [formData, setFormData] = useState({
+    interface Address {
+        type: string;
+        street: string;
+        city: string;
+        state: string;
+        zip: string;
+        isDefault: boolean;
+    }
+
+    interface ProfileFormData {
+        firstName: string;
+        lastName: string;
+        contactNumber: string;
+        email: string;
+        address: string;
+        scannerSettings: {
+            cameraOption: boolean;
+            autoPlantDetection: boolean;
+            saveInGoogleDrive: boolean;
+        };
+        privacyGrid: {
+            notifications: boolean;
+            dataEncryption: boolean;
+        };
+        addresses: Address[];
+    }
+
+    const [formData, setFormData] = useState<ProfileFormData>({
         firstName: user?.firstName || "",
         lastName: user?.lastName || "",
         contactNumber: user?.contactNumber || "",
         email: user?.email || "",
-        address: user?.address || "" // Added address field
+        address: user?.address || "",
+        scannerSettings: {
+            cameraOption: user?.scannerSettings?.cameraOption ?? true,
+            autoPlantDetection: user?.scannerSettings?.autoPlantDetection ?? true,
+            saveInGoogleDrive: user?.scannerSettings?.saveInGoogleDrive ?? false,
+        },
+        privacyGrid: {
+            notifications: user?.privacyGrid?.notifications ?? true,
+            dataEncryption: user?.privacyGrid?.dataEncryption ?? true,
+        },
+        addresses: user?.addresses || []
     });
     const [profileImage, setProfileImage] = useState<string | null>(user?.profilePhoto || null);
     const [editImageFile, setEditImageFile] = useState<string | null>(null);
@@ -120,9 +157,9 @@ function ProfileContent() {
         dataEncryption: user?.privacyGrid?.dataEncryption ?? true
     });
 
-    const [addresses, setAddresses] = useState(user?.addresses || []);
+    const [addresses, setAddresses] = useState<Address[]>(user?.addresses || []);
     const [isAddingAddress, setIsAddingAddress] = useState(false);
-    const [newAddress, setNewAddress] = useState({ type: 'home', street: '', city: '', state: '', zip: '' });
+    const [newAddress, setNewAddress] = useState<Omit<Address, 'isDefault'>>({ type: 'home', street: '', city: '', state: '', zip: '' });
 
     const handleUpdateScanner = async (key: keyof typeof scannerSettings) => {
         const updated = { ...scannerSettings, [key]: !scannerSettings[key] };
@@ -977,10 +1014,8 @@ function ProfileContent() {
                                     </button>
                                 </div>
 
-                                </div>
-
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {addresses.map((addr: any, index: number) => (
+                                    {addresses.map((addr: Address, index: number) => (
                                         <div key={index} className="p-6 bg-slate-50/50 dark:bg-pink-500/5 rounded-[2rem] border-2 border-pink-500/20 relative group">
                                             <div className="absolute top-4 right-4 flex gap-2">
                                                 {addr.isDefault && <span className="px-3 py-1 bg-pink-500 text-white text-[8px] font-black uppercase rounded-full tracking-widest">Default</span>}

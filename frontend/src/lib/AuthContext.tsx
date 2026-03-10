@@ -33,6 +33,23 @@ type User = {
         };
     };
     dailyRoutine?: string;
+    scannerSettings?: {
+        cameraOption: boolean;
+        autoPlantDetection: boolean;
+        saveInGoogleDrive: boolean;
+    };
+    privacyGrid?: {
+        notifications: boolean;
+        dataEncryption: boolean;
+    };
+    addresses?: Array<{
+        type: string;
+        street: string;
+        city: string;
+        state: string;
+        zip: string;
+        isDefault: boolean;
+    }>;
 };
 
 type AuthContextType = {
