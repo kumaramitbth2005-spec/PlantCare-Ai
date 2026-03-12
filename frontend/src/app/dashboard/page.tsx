@@ -167,12 +167,25 @@ export default function Dashboard() {
         ],
     };
 
+    // Generate dynamic chart data from history (Group by date over the last 6 days or so)
+    const recentScans = [...history].reverse(); // oldest first for left-to-right chart
+    const chartLabels = recentScans.length > 0 
+        ? recentScans.map(scan => format(new Date(scan.createdAt), 'MMM dd'))
+        : ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6']; // Fallback empty state
+    
+    // Use confidence or simply uniform count 1 for demonstration if no custom logic exists
+    // Lets use confidence score for a visually interesting graph, or just count. 
+    // Here we'll plot the confidence score of recent scans.
+    const chartDataPoints = recentScans.length > 0
+        ? recentScans.map(scan => scan.confidence) 
+        : [0, 0, 0, 0, 0, 0]; // Fallback empty state
+
     const lineData = {
-        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'],
+        labels: chartLabels,
         datasets: [
             {
-                label: 'Scans',
-                data: [15, 25, 45, 35, 65, data?.totalScans || 0],
+                label: 'Confidence Level (%)',
+                data: chartDataPoints,
                 fill: true,
                 borderColor: 'rgb(236, 72, 153)',
                 backgroundColor: 'rgba(236, 72, 153, 0.1)',

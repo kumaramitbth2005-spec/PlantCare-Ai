@@ -84,10 +84,17 @@ export default function ScannerPage() {
             } else {
                 setError(response.data.message || "Neural link failure. Check AI backend.");
             }
-        } catch (err) {
-            const error = err as Error;
-            console.error("Scan Error:", error);
-            setError("Connection lost. Ensure the AI system is running locally.");
+        } catch (err: any) {
+            console.error("Scan Error:", err);
+            
+            if (err.response?.status === 401) {
+                setError("Authentication required or session expired. Redirecting to login...");
+                setTimeout(() => router.push('/login'), 2000);
+            } else if (err.response?.data?.message) {
+                setError(err.response.data.message);
+            } else {
+                setError("Connection lost. Please ensure the backend server is running.");
+            }
         } finally {
             setLoading(false);
             setScanStep("");
@@ -136,17 +143,17 @@ export default function ScannerPage() {
             </header>
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-10 items-start">
-                <div className="xl:col-span-7 space-y-8">
+                <div className="xl:col-span-7 space-y-8 min-w-0">
                     <div
                         {...getRootProps()}
                         className={cn(
-                            "group relative overflow-hidden border-2 border-dashed rounded-[3rem]",
-                            "p-6 transition-all duration-700 flex flex-col items-center",
-                            "justify-center min-h-[300px] md:min-h-[400px] cursor-pointer shadow-sm",
+                            "group relative border-2 border-dashed rounded-[3rem] overflow-hidden",
+                            "transition-all duration-700 flex flex-col items-center",
+                            "justify-center cursor-pointer shadow-sm w-full max-w-full",
                             isDragActive
                                 ? "border-pink-500 bg-pink-50/30"
                                 : "border-slate-100 dark:border-pink-500/10 hover:border-pink-400 hover:bg-pink-50/10 dark:hover:bg-pink-500/5",
-                            preview && "p-2 min-h-0 aspect-[4/3] sm:aspect-video"
+                            preview ? "p-2 aspect-[4/3] sm:aspect-video" : "p-6 min-h-[300px] md:min-h-[400px]"
                         )}
                     >
                         <input {...getInputProps()} />
@@ -170,11 +177,12 @@ export default function ScannerPage() {
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
                                     <button
-                                        onClick={(e) => { e.stopPropagation(); clear(); }}
+                                        type="button"
+                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); clear(); }}
                                         className={cn(
                                             "absolute top-6 right-6 p-3 bg-white/90 dark:bg-black/60",
                                             "backdrop-blur-xl rounded-2xl text-slate-900 dark:text-pink-100",
-                                            "hover:scale-110 active:scale-90 transition-all shadow-2xl z-20",
+                                            "hover:scale-110 active:scale-90 transition-all shadow-2xl z-50",
                                             "border border-white/50"
                                         )}
                                     >
@@ -285,7 +293,7 @@ export default function ScannerPage() {
                     </button>
                 </div>
 
-                <div className="xl:col-span-5 h-full">
+                <div className="xl:col-span-5 h-full min-w-0">
                     <AnimatePresence mode="wait">
                         {result ? (
                             <motion.div

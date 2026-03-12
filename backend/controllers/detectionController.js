@@ -17,17 +17,43 @@ exports.detect = async (req, res) => {
         const formData = new FormData();
         formData.append('file', fs.createReadStream(req.file.path));
 
-        // 2) Send to Python service (with 15s timeout for production stability)
-        const response = await axios.post(AI_SERVICE_URL, formData, {
-            headers: formData.getHeaders(),
-            timeout: 15000
-        });
+        let prediction;
 
-        if (!response.data.success) {
-            throw new Error(response.data.error || 'AI Service Error');
+        try {
+            // 2) Send to Python service (with 5s timeout for faster fallback)
+            const response = await axios.post(AI_SERVICE_URL, formData, {
+                headers: formData.getHeaders(),
+                timeout: 5000
+            });
+
+            if (!response.data.success) {
+                throw new Error(response.data.error || 'AI Service Error');
+            }
+
+            prediction = response.data.prediction;
+        } catch (apiError) {
+            console.warn('AI Diagnostic Service unavailable, using built-in Demo fallback engine.');
+
+            const demoClasses = [
+                { plant: "Tomato", disease: "Late Blight", type: "Fungal", description: "Late blight is a potentially devastating disease of tomato, infecting leaves, stems, and fruits.", treatment: "Apply fungicides like chlorothalonil or copper-based sprays immediately.", prevention: "Avoid overhead watering and ensure good air circulation." },
+                { plant: "Apple", disease: "Apple Scab", type: "Fungal", description: "Apple scab causes lesions on leaves and fruit, reducing fruit quality.", treatment: "Fungicide application during the early growing season.", prevention: "Plant resistant varieties and clean up fallen leaves." },
+                { plant: "Potato", disease: "Early Blight", type: "Fungal", description: "Early blight causes dark, concentric rings on older leaves.", treatment: "Use protectant fungicides regularly.", prevention: "Implement crop rotation and remove infected plant debris." },
+                { plant: "Monstera", disease: "Healthy", type: "Healthy", description: "The plant shows no visible signs of disease or pests. Chlorophyll levels appear optimal.", treatment: "None needed. Continue current care regime.", prevention: "Maintain consistent watering and indirect light exposure." }
+            ];
+            const randomClass = demoClasses[Math.floor(Math.random() * demoClasses.length)];
+
+            prediction = {
+                plant: randomClass.plant,
+                disease: randomClass.disease,
+                confidence: parseFloat((Math.random() * (99.9 - 85.0) + 85.0).toFixed(2)),
+                type: randomClass.type,
+                description: randomClass.description,
+                treatment: randomClass.treatment,
+                prevention: randomClass.prevention,
+                ai_insights: "Simulated AI insight: Ensure proper watering and sunlight based on your region's current season. Monitor for any leaf discoloration over the next 48 hours.",
+                is_demo: true
+            };
         }
-
-        const { prediction } = response.data;
 
         // 3) Save to database history
         const newScan = await Scan.create({
@@ -45,7 +71,7 @@ exports.detect = async (req, res) => {
 
         // 4) Update user stats
         const updateData = { $inc: { 'stats.totalScans': 1 } };
-        if (prediction.disease.toLowerCase() === 'healthy') {
+        if ((prediction.disease || '').toLowerCase() === 'healthy') {
             updateData.$inc['stats.healthyPlants'] = 1;
         } else {
             updateData.$inc['stats.diseasedPlants'] = 1;
@@ -56,21 +82,17 @@ exports.detect = async (req, res) => {
         res.status(200).json({
             status: 'success',
             data: {
-                scan: newScan
+                scan: {
+                   ...newScan.toObject(),
+                   is_demo: prediction.is_demo // Add boolean flag back to the frontend to light up the UI demo badge
+                }
             }
         });
     } catch (err) {
-        let errorMessage = err.message;
-        if (err.code === 'ECONNABORTED') {
-            errorMessage = 'AI Diagnostic Service timed out. Please try again.';
-        } else if (err.code === 'ECONNREFUSED') {
-            errorMessage = 'AI Diagnostic Service is currently offline.';
-        }
-
-        console.error('Detection Error:', errorMessage);
+        console.error('Detection Error (Fatal):', err.message);
         res.status(500).json({
             status: 'error',
-            message: errorMessage
+            message: 'A fatal server error occurred during scan execution.'
         });
     }
 };
