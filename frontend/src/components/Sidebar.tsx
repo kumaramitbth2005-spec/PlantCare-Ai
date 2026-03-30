@@ -74,7 +74,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
 
             <aside className={cn(
                 "fixed left-0 top-0 h-screen w-72 bg-white dark:bg-slate-900 xl:bg-card", // Solid background on mobile
-                "text-foreground z-60 flex flex-col shadow-2xl border-r border-border",
+                "text-foreground z-60 flex flex-col shadow-2xl",
                 "transition-all duration-300 ease-in-out",
                 "xl:translate-x-0", // Always show on desktop
                 isOpen ? "translate-x-0" : "-translate-x-full" // Toggle on mobile

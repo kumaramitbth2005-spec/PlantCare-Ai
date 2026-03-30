@@ -19,6 +19,24 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
     
     // --- Alarm Implementation ---
     const [isAlarmActive, setIsAlarmActive] = useState(false);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    useEffect(() => {
+        if (!user) return;
+        if (isAlarmActive && user.ringtoneSettings?.alarmSoundEnabled !== false) {
+            const audioPath = user.ringtoneSettings?.selectedAlarmRingtone || '/audio/alarm_1.mp3';
+            if (!audioRef.current) {
+                audioRef.current = new Audio(audioPath);
+                audioRef.current.loop = true;
+            }
+            audioRef.current.play().catch(e => console.log('Alarm playback failed:', e));
+        } else {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+            }
+        }
+    }, [isAlarmActive, user?.ringtoneSettings]);
     
     useEffect(() => {
         if (!user || !user.plantReminders?.water?.enabled) return;
@@ -69,7 +87,7 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
 
     const searchIndex = [
         // Main Navigation
-        { id: 'dashboard', title: t('sidebar.dashboard') || 'Dashboard Overview', path: '/dashboard', icon: LayoutDashboard, desc: 'View your main analytics and statistics' },
+        { id: 'dashboard', title: t('sidebar.dashboard') || 'Home Overview', path: '/dashboard', icon: LayoutDashboard, desc: 'View your main activity and analytics' },
         { id: 'scanner', title: t('sidebar.scanner') || 'AI Diagnostics Scanner', path: '/scanner', icon: Scan, desc: 'Scan plants for diseases and get instant results' },
         { id: 'history', title: t('sidebar.history') || 'Mission Logs', path: '/history', icon: History, desc: 'View past diagnostic history and reports' },
         { id: 'workspace', title: t('sidebar.workspace') || 'Workspace', path: '/workspace', icon: FolderKanban, desc: 'Manage your active projects and tasks' },
@@ -90,7 +108,7 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
 
         // Quick Actions
         { id: 'update', title: 'Check for Updates', action: 'update', icon: RefreshCw, desc: 'Sync with the central matrix for the latest algorithms' },
-        { id: 'logout', title: t('sidebar.logout') || 'Terminate Session', action: 'logout', icon: LogOut, desc: 'Securely completely exit your current session' }
+        { id: 'logout', title: t('sidebar.logout') || 'Log out', action: 'logout', icon: LogOut, desc: 'Securely completely exit your current session' }
     ];
 
     const filteredSearch = searchIndex.filter(item => 
@@ -169,8 +187,9 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
 
     return (
         <header className={cn(
-            "h-20 bg-background/80 backdrop-blur-xl border-b border-border",
-            "sticky top-0 z-50 px-4 sm:px-10 flex items-center justify-between transition-colors duration-300"
+            "h-20 bg-background/80 backdrop-blur-xl",
+            "fixed top-0 right-0 left-0 xl:left-72 z-50 px-4 sm:px-10 flex items-center justify-between transition-all duration-300",
+            "shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
         )}>
             {/* Mobile Menu & Logo */}
             <div className="flex items-center gap-4 xl:hidden">
@@ -431,7 +450,7 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
                     </div>
                 </div>
 
-                <div className="h-10 w-[1px] bg-border mx-2 hidden sm:block" />
+
 
                 <div className="flex items-center gap-4 pl-2">
                     <div className="text-right hidden sm:block">

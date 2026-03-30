@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import {
     Upload,
@@ -10,7 +10,11 @@ import {
     Loader2,
     Search,
     Zap,
-    Sparkles
+    Sparkles,
+    Camera,
+    Video,
+    FlipHorizontal,
+    CameraOff
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
@@ -18,11 +22,14 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useNotifications } from "@/lib/NotificationContext";
+import { useSoundSystem, NotificationPreset } from "@/lib/useSoundSystem";
+import { useAuth } from "@/lib/AuthContext";
 
 // API Configuration - Using Node Backend Proxy
-const API_URL = "http://localhost:8000/api/detection/detect";
+const API_URL = `http://${typeof window !== "undefined" ? window.location.hostname : "localhost"}:8000/api/detection/detect`;
 
 export default function ScannerPage() {
+    const { user } = useAuth();
     const [file, setFile] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -38,8 +45,108 @@ export default function ScannerPage() {
         is_demo?: boolean;
     } | null>(null);
     const [error, setError] = useState<string | null>(null);
+    
+    // Camera State
+    const [useCamera, setUseCamera] = useState(false);
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+    const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+    const [isCameraFront, setIsCameraFront] = useState(false);
+    const [capturedBlob, setCapturedBlob] = useState<Blob | null>(null);
+    const [capturedPhotoUrl, setCapturedPhotoUrl] = useState<string | null>(null);
+
+    const handleVideoRef = useCallback((node: HTMLVideoElement | null) => {
+        videoRef.current = node;
+        if (node && cameraStream && node.srcObject !== cameraStream) {
+            node.srcObject = cameraStream;
+            node.onloadedmetadata = () => {
+                node.play().catch(console.error);
+            };
+        }
+    }, [cameraStream]);
+
     const router = useRouter();
     const { addNotification } = useNotifications();
+    const { playNotification } = useSoundSystem();
+
+    const stopCamera = useCallback(() => {
+        setCameraStream((prevStream) => {
+            if (prevStream) {
+                prevStream.getTracks().forEach((track) => track.stop());
+            }
+            return null;
+        });
+    }, []);
+
+    const startCamera = useCallback(async (frontCam: boolean) => {
+        setError(null);
+        try {
+            stopCamera(); // ensure previous is stopped
+            
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: frontCam ? "user" : "environment" },
+                audio: false
+            });
+            setCameraStream(stream);
+        } catch (err) {
+            console.error("Camera access denied or error:", err);
+            setError("Camera permission denied or device not found. Check system permissions.");
+            setUseCamera(false);
+        }
+    }, [stopCamera]);
+
+    useEffect(() => {
+        if (useCamera && !preview) {
+            startCamera(isCameraFront);
+        } else {
+            stopCamera();
+        }
+    }, [useCamera, isCameraFront, preview, startCamera, stopCamera]);
+
+    useEffect(() => {
+        return () => stopCamera(); // Cleanup on unmount
+    }, [stopCamera]);
+
+    const capturePhoto = useCallback(() => {
+        if (videoRef.current && cameraStream) {
+            const canvas = document.createElement("canvas");
+            canvas.width = videoRef.current.videoWidth;
+            canvas.height = videoRef.current.videoHeight;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+                if (isCameraFront) {
+                    ctx.translate(canvas.width, 0);
+                    ctx.scale(-1, 1);
+                }
+                ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        setCapturedBlob(blob);
+                        setCapturedPhotoUrl(URL.createObjectURL(blob));
+                    }
+                }, "image/jpeg", 0.9);
+            }
+        }
+    }, [cameraStream, isCameraFront]);
+
+    const handleRetake = () => {
+        setCapturedBlob(null);
+        setCapturedPhotoUrl(null);
+    };
+
+    const handleConfirmCapture = () => {
+        if (capturedBlob) {
+            const newFile = new File([capturedBlob], "camera-capture.jpg", { type: "image/jpeg" });
+            setFile(newFile);
+            setPreview(URL.createObjectURL(newFile));
+            setResult(null);
+            setError(null);
+            setUseCamera(false);
+            setCapturedBlob(null);
+            setCapturedPhotoUrl(null);
+            stopCamera();
+            handleScan(newFile); // initiate scan immediately
+        }
+    };
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
         const selectedFile = acceptedFiles[0];
@@ -57,18 +164,24 @@ export default function ScannerPage() {
         multiple: false
     });
 
-    const handleScan = async () => {
-        if (!file) return;
+    const handleScan = async (fileToScanOrEvent?: any) => {
+        let targetFile = file;
+        if (fileToScanOrEvent && fileToScanOrEvent instanceof File) {
+            targetFile = fileToScanOrEvent;
+        }
+
+        if (!targetFile) return;
         setLoading(true);
         setError(null);
         setScanStep("Uploading intelligence...");
 
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", targetFile);
 
         try {
             setTimeout(() => setScanStep("Isolating bio-markers..."), 800);
             setTimeout(() => setScanStep("Cross-referencing neural data..."), 1600);
+            playNotification((user?.ringtoneSettings?.selectedNotificationRingtone as NotificationPreset) || "Soft Pop");
 
             const token = localStorage.getItem('pc_token');
             const response = await axios.post(API_URL, formData, {
@@ -81,6 +194,7 @@ export default function ScannerPage() {
             if (response.data.status === 'success') {
                 const scanData = response.data.data.scan;
                 setResult(scanData);
+                playNotification((user?.ringtoneSettings?.selectedNotificationRingtone as NotificationPreset) || "Neural Ping");
             } else {
                 setError(response.data.message || "Neural link failure. Check AI backend.");
             }
@@ -144,19 +258,56 @@ export default function ScannerPage() {
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-10 items-start">
                 <div className="xl:col-span-7 space-y-8 min-w-0">
-                    <div
-                        {...getRootProps()}
+                    
+                    {/* Camera Toggle Section */}
+                    <div 
+                        onClick={() => {
+                            setUseCamera(!useCamera);
+                            if (preview) clear();
+                        }}
                         className={cn(
-                            "group relative border-2 border-dashed rounded-[3rem] overflow-hidden",
-                            "transition-all duration-700 flex flex-col items-center",
-                            "justify-center cursor-pointer shadow-sm w-full max-w-full",
-                            isDragActive
-                                ? "border-pink-500 bg-pink-50/30"
-                                : "border-slate-100 dark:border-pink-500/10 hover:border-pink-400 hover:bg-pink-50/10 dark:hover:bg-pink-500/5",
-                            preview ? "p-2 aspect-[4/3] sm:aspect-video" : "p-6 min-h-[300px] md:min-h-[400px]"
+                            "p-6 rounded-[2rem] border border-slate-100 dark:border-pink-500/10",
+                            "bg-white dark:bg-[#1a1215] flex flex-col sm:flex-row items-center justify-between gap-4",
+                            "shadow-sm transition-all duration-300 cursor-pointer hover:border-pink-300 dark:hover:border-pink-500/30 hover:shadow-md",
+                            useCamera && "border-pink-300 dark:border-pink-500/30"
                         )}
                     >
-                        <input {...getInputProps()} />
+                        <div className="flex items-center gap-4">
+                            <div className={cn(
+                                "p-3 rounded-2xl transition-all duration-500",
+                                useCamera 
+                                    ? "bg-pink-500 text-white shadow-lg shadow-pink-500/20 scale-110" 
+                                    : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                            )}>
+                                {useCamera ? <Video className="w-6 h-6" /> : <CameraOff className="w-6 h-6" />}
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                                    Camera Option 
+                                    {useCamera && <span className="w-2 h-2 rounded-full bg-pink-500 animate-pulse" />}
+                                </h3>
+                                <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Select Primary Neural Input Device</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        {...getRootProps({
+                            onClick: (e) => {
+                                if (useCamera) e.stopPropagation();
+                            }
+                        })}
+                        className={cn(
+                            "group relative overflow-hidden transition-all duration-700 flex flex-col items-center justify-center cursor-pointer w-full max-w-full",
+                            !useCamera && "border-2 border-dashed rounded-[3rem] shadow-sm",
+                            useCamera && !preview && "rounded-[2.5rem] bg-black shadow-2xl",
+                            !useCamera && isDragActive
+                                ? "border-pink-500 bg-pink-50/30"
+                                : !useCamera ? "border-slate-100 dark:border-pink-500/10 hover:border-pink-400 hover:bg-pink-50/10 dark:hover:bg-pink-500/5" : "",
+                            (preview || useCamera) ? (useCamera && !preview ? "p-0 aspect-[3/4] sm:aspect-video" : "p-2 aspect-[4/3] sm:aspect-video") : "p-6 min-h-[300px] md:min-h-[400px]"
+                        )}
+                    >
+                        {!useCamera && <input {...getInputProps()} disabled={useCamera} />}
 
                         <AnimatePresence mode="wait">
                             {preview ? (
@@ -214,6 +365,102 @@ export default function ScannerPage() {
                                         </div>
                                     )}
                                 </motion.div>
+                            ) : useCamera ? (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.96 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="relative w-full h-full bg-black flex flex-col items-center justify-center overflow-hidden"
+                                >
+                                    {capturedPhotoUrl ? (
+                                        <div className="absolute inset-0 z-0">
+                                            <Image src={capturedPhotoUrl} alt="Captured" fill className="object-cover" unoptimized />
+                                        </div>
+                                    ) : (
+                                        <video
+                                            ref={handleVideoRef}
+                                            autoPlay
+                                            playsInline
+                                            muted
+                                            className={cn(
+                                                "absolute inset-0 w-full h-full object-cover transition-transform duration-300 z-0",
+                                                isCameraFront ? "-scale-x-100" : ""
+                                            )}
+                                        />
+                                    )}
+                                    
+                                    {/* Scan Overlay Rectangle */}
+                                    <div className="absolute inset-0 pointer-events-none z-10 flex flex-col items-center justify-center">
+                                        <div className="w-[85%] sm:w-[60%] aspect-square relative rounded-3xl shadow-[0_0_0_9999px_rgba(0,0,0,0.65)]">
+                                            
+                                            {/* Scanning Line overlaying just the square box */}
+                                            {!capturedPhotoUrl && !loading && (
+                                                <div className="absolute inset-0 overflow-hidden rounded-3xl">
+                                                    <motion.div 
+                                                        animate={{ top: ["0%", "100%", "0%"] }}
+                                                        transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+                                                        className="absolute left-0 right-0 h-1 bg-pink-500 shadow-[0_0_30px_rgba(236,72,153,1)]"
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {/* Neon Corners */}
+                                            <div className="absolute -top-1 -left-1 w-12 h-12 border-t-[6px] border-l-[6px] border-pink-500 rounded-tl-3xl opacity-90" />
+                                            <div className="absolute -top-1 -right-1 w-12 h-12 border-t-[6px] border-r-[6px] border-pink-500 rounded-tr-3xl opacity-90" />
+                                            <div className="absolute -bottom-1 -left-1 w-12 h-12 border-b-[6px] border-l-[6px] border-pink-500 rounded-bl-3xl opacity-90" />
+                                            <div className="absolute -bottom-1 -right-1 w-12 h-12 border-b-[6px] border-r-[6px] border-pink-500 rounded-br-3xl opacity-90" />
+                                        </div>
+                                    </div>
+
+                                    {/* Camera Controls (Always above overlay) */}
+                                    <div className="absolute bottom-6 inset-x-0 w-full px-6 z-50">
+                                        {!capturedPhotoUrl ? (
+                                            <div className="flex items-center justify-between w-full max-w-sm mx-auto">
+                                                {/* Switch Camera Button */}
+                                                <button
+                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsCameraFront(!isCameraFront); }}
+                                                    className="w-14 h-14 rounded-full bg-black/40 border border-white/20 flex items-center justify-center text-white backdrop-blur-md hover:bg-black/60 active:scale-95 transition-all pointer-events-auto shadow-lg"
+                                                >
+                                                    <FlipHorizontal className="w-6 h-6" />
+                                                </button>
+                                                
+                                                {/* Circular Capture Button with Ripple Animation Design */}
+                                                <button
+                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); capturePhoto(); }}
+                                                    className="relative w-20 h-20 flex items-center justify-center rounded-full border-[3px] border-white/30 hover:border-white/50 bg-black/20 group outline-none pointer-events-auto"
+                                                >
+                                                    <div className="w-[3.5rem] h-[3.5rem] bg-white rounded-full group-active:scale-90 group-active:opacity-80 transition-all duration-200 shadow-[0_0_20px_rgba(255,255,255,0.8)]" />
+                                                </button>
+
+                                                {/* Empty space for flex balance */}
+                                                <div className="w-14 h-14" />
+                                            </div>
+                                        ) : (
+                                            <div className="flex justify-between gap-4 w-full max-w-md mx-auto pointer-events-auto">
+                                                <button 
+                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRetake(); }}
+                                                    className="flex-1 py-4 bg-black/60 backdrop-blur-xl rounded-2xl text-white font-black text-sm uppercase tracking-widest border border-white/20 hover:bg-black/80 active:scale-95 transition-all shadow-xl"
+                                                >
+                                                    Retake
+                                                </button>
+                                                <button 
+                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleConfirmCapture(); }}
+                                                    className="flex-1 py-4 bg-pink-500 rounded-2xl text-white font-black text-sm uppercase tracking-widest shadow-[0_10px_30px_rgba(236,72,153,0.5)] active:scale-95 transition-all"
+                                                >
+                                                    Scan
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Loading State Overlay over camera */}
+                                    {loading && (
+                                        <div className="absolute inset-0 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center text-white z-[60]">
+                                            <Loader2 className="w-12 h-12 animate-spin mb-4 text-pink-500" />
+                                            <p className="font-black tracking-widest uppercase text-sm">Initiating Scan Sequence...</p>
+                                        </div>
+                                    )}
+
+                                </motion.div>
                             ) : (
                                 <motion.div
                                     initial={{ opacity: 0 }}
@@ -230,7 +477,7 @@ export default function ScannerPage() {
                                         <Upload className="w-10 h-10" />
                                     </div>
                                     <div>
-                                        <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Supply Specimen</h3>
+                                        <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Scan Plant Image</h3>
                                         <p className="text-sm text-slate-500 dark:text-slate-400 mt-3 font-bold leading-relaxed px-4">
                                             Drag leaf image for deep neural analysis. Neural engine identifies 38+ pathology states.
                                         </p>
@@ -479,7 +726,7 @@ export default function ScannerPage() {
                                     </div>
                                 </div>
                                 <div className="space-y-4">
-                                    <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Awaiting Input</h3>
+                                    <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Treatment Suggestion</h3>
                                     <p className="text-slate-500 dark:text-slate-400 font-bold leading-relaxed text-sm max-w-xs mx-auto">
                                         The neural engine is online. Supply a bio-specimen (leaf image) to initiate deep analysis and disease detection.
                                     </p>

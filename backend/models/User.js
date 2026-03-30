@@ -85,6 +85,13 @@ const userSchema = new mongoose.Schema({
     privacyGrid: {
         notifications: { type: Boolean, default: true },
         dataEncryption: { type: Boolean, default: true }
+    },
+    ringtoneSettings: {
+        notificationSoundEnabled: { type: Boolean, default: true },
+        alarmSoundEnabled: { type: Boolean, default: true },
+        selectedNotificationRingtone: { type: String, default: '/audio/notification_1.mp3' },
+        selectedAlarmRingtone: { type: String, default: '/audio/alarm_1.mp3' },
+        customRingtones: [{ type: String }]
     }
 }, { timestamps: true });
 

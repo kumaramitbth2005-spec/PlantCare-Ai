@@ -16,7 +16,7 @@ LEARNING_RATE = 0.001
 # Class names mapping (example subset, would normally be loaded from directory structure)
 CLASS_NAMES = [
     'Apple___Apple_scab', 'Apple___Black_rot', 'Apple___Cedar_apple_rust', 'Apple___healthy',
-    'Blueberry___healthy', 'Brinjal___Leaf_Curl', 'Brinjal___healthy', 'Cherry_(including_sour)___Powdery_mildew', 'Cherry_(including_sour)___healthy',
+    'Blueberry___healthy', 'Brinjal___Leaf_Curl', 'Brinjal___Fruit_and_Shoot_Borer', 'Brinjal___healthy', 'Cherry_(including_sour)___Powdery_mildew', 'Cherry_(including_sour)___healthy',
     'Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot', 'Corn_(maize)___Common_rust_',
     'Grape___Esca_(Black_Measles)', 'Grape___Leaf_blight_(Isariopsis_Leaf_Spot)', 'Grape___healthy',
     'Ladyfinger___Yellow_Vein_Mosaic', 'Ladyfinger___healthy',

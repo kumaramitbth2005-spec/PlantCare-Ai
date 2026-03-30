@@ -65,7 +65,7 @@ export default function LoginPage() {
                         <Zap className="w-10 h-10 text-white fill-white/10" />
                     </div>
 
-                    <h1 className="text-4xl font-black text-white tracking-tighter mb-2">
+                    <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter mb-2">
                         PlantCare{" "}
                         <span className="text-pink-500">
                             AI
@@ -97,10 +97,10 @@ export default function LoginPage() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="researcher@plantcare.ai"
                                     className={cn(
-                                        "w-full bg-white/5 border border-white/5 rounded-2xl py-4",
-                                        "pl-14 pr-6 text-sm font-bold text-white placeholder:text-slate-600",
-                                        "focus:ring-4 focus:ring-pink-500/10 outline-none transition-all",
-                                        "focus:bg-white/10"
+                                        "w-full bg-slate-100/50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl py-4",
+                                        "pl-14 pr-6 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600",
+                                        "focus:ring-4 focus:ring-pink-500/20 outline-none transition-all",
+                                        "focus:bg-slate-100 dark:focus:bg-white/10"
                                     )}
                                 />
                             </div>
@@ -137,10 +137,10 @@ export default function LoginPage() {
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
                                     className={cn(
-                                        "w-full bg-white/5 border border-white/5 rounded-2xl py-4",
-                                        "pl-14 pr-12 text-sm font-bold text-white placeholder:text-slate-600",
-                                        "focus:ring-4 focus:ring-pink-500/10 outline-none transition-all",
-                                        "focus:bg-white/10"
+                                        "w-full bg-slate-100/50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl py-4",
+                                        "pl-14 pr-12 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600",
+                                        "focus:ring-4 focus:ring-pink-500/20 outline-none transition-all",
+                                        "focus:bg-slate-100 dark:focus:bg-white/10"
                                     )}
                                 />
                                 <button

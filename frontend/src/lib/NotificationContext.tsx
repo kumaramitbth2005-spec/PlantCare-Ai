@@ -57,6 +57,19 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             time: new Date().toISOString(),
         };
         setNotifications(prev => [newNotif, ...prev]);
+
+        // Play sound if enabled and in browser
+        if (typeof window !== 'undefined') {
+            const savedUser = localStorage.getItem('pc_user');
+            if (savedUser) {
+                const user = JSON.parse(savedUser);
+                if (user.ringtoneSettings?.notificationSoundEnabled !== false) {
+                    const audioPath = user.ringtoneSettings?.selectedNotificationRingtone || '/audio/notification_1.mp3';
+                    const audio = new Audio(audioPath);
+                    audio.play().catch(e => console.log('Audio playback failed or blocked:', e));
+                }
+            }
+        }
     };
 
     const markAsRead = (id: string) => {

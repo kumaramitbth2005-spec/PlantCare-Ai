@@ -270,7 +270,7 @@ export default function LandingPage() {
           <div>
             <h4 className="text-[10px] font-black text-pink-500 uppercase tracking-[0.4rem] mb-10 italic">Quick Protocols</h4>
             <div className="flex flex-col gap-4">
-              {['Dashboard', 'AI Scanner', 'History', 'Workspace'].map(item => (
+              {['Home', 'AI Scanner', 'History', 'Workspace'].map(item => (
                 <Link key={item} href="#" className="text-sm font-black text-slate-400 hover:text-white transition-colors">{item}</Link>
               ))}
             </div>

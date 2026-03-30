@@ -1,0 +1,35 @@
+
+> frontend@0.1.0 lint
+> eslint
+
+
+C:\Users\HP\Desktop\PlantCare\frontend\src\app\profile\page.tsx
+   184:18  warning  'err' is defined but never used           @typescript-eslint/no-unused-vars
+   195:18  warning  'err' is defined but never used           @typescript-eslint/no-unused-vars
+   209:18  warning  'err' is defined but never used           @typescript-eslint/no-unused-vars
+   217:55  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   223:18  warning  'err' is defined but never used           @typescript-eslint/no-unused-vars
+   256:18  warning  'err' is defined but never used           @typescript-eslint/no-unused-vars
+  1260:78  warning  'err' is defined but never used           @typescript-eslint/no-unused-vars
+  1320:78  warning  'err' is defined but never used           @typescript-eslint/no-unused-vars
+
+C:\Users\HP\Desktop\PlantCare\frontend\src\app\scanner\page.tsx
+   14:5   warning  'Camera' is defined but never used        @typescript-eslint/no-unused-vars
+  167:51  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  201:23  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\HP\Desktop\PlantCare\frontend\src\components\AlarmScheduler.tsx
+   3:29  warning  'useState' is defined but never used      @typescript-eslint/no-unused-vars
+  32:71  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\HP\Desktop\PlantCare\frontend\src\components\Navbar.tsx
+  39:8  warning  React Hook useEffect has a missing dependency: 'user'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\HP\Desktop\PlantCare\frontend\src\lib\useSoundSystem.ts
+    3:20  warning  'useRef' is defined but never used        @typescript-eslint/no-unused-vars
+    3:41  warning  'useEffect' is defined but never used     @typescript-eslint/no-unused-vars
+   17:68  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  172:56  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+
+Γ£û 18 problems (5 errors, 13 warnings)
+

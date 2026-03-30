@@ -6,3 +6,5 @@ waitress==2.1.2
 flask-cors==4.0.0
 python-dotenv
 requests
+torch
+torchvision

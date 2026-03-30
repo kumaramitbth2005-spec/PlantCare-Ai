@@ -9,8 +9,8 @@ PlantCare AI is a comprehensive platform designed for farmers, researchers, and 
 *   **Premium Dashboard**: Glassmorphism UI with interactive Chart.js analytics.
 *   **History & Reports**: Track scan history with confidence metrics and export capabilities.
 *   **Multi-Service Architecture**: Scalable Docker-orchestrated system (Next.js, Node.js, Python/TensorFlow).
-
 ## 🏗️ System Architecture
+
 
 ```mermaid
 graph TD

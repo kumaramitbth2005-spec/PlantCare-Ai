@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from '@/lib/LanguageContext';
 import { useNotifications } from '@/lib/NotificationContext';
 import { useAuth } from '@/lib/AuthContext';
+import { useSoundSystem, NotificationPreset, AlarmPreset } from '@/lib/useSoundSystem';
 import { useTheme } from "@/lib/ThemeContext";
 import { Language } from "@/lib/translations";
 import { useState, useEffect, Suspense, useRef } from 'react';
@@ -44,6 +45,7 @@ function ProfileContent() {
     const { t, language, setLanguage } = useLanguage();
     const { addNotification } = useNotifications();
     const { user, logout, updateProfile, token } = useAuth();
+    const { playNotification, playAlarm, stopAlarm, loadCustomAudioFromFile, customNotificationName, customAlarmName } = useSoundSystem();
     const { theme, setTheme } = useTheme();
     const [isSyncing, setIsSyncing] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -125,6 +127,8 @@ function ProfileContent() {
     const [lastTouchDistance, setLastTouchDistance] = useState<number | null>(null);
     const [imageDims, setImageDims] = useState<{ width: number, height: number } | null>(null);
     const previewContainerRef = useRef<HTMLDivElement>(null);
+    const notificationInputRef = useRef<HTMLInputElement>(null);
+    const alarmInputRef = useRef<HTMLInputElement>(null);
 
     // --- Plant Care State ---
     const [waterReminderOn, setWaterReminderOn] = useState(user?.plantReminders?.water?.enabled ?? true);
@@ -158,6 +162,13 @@ function ProfileContent() {
     const [privacyGrid, setPrivacyGrid] = useState({
         notifications: user?.privacyGrid?.notifications ?? true,
         dataEncryption: user?.privacyGrid?.dataEncryption ?? true
+    });
+
+    const [ringtoneSettings, setRingtoneSettings] = useState({
+        notificationSoundEnabled: user?.ringtoneSettings?.notificationSoundEnabled ?? true,
+        alarmSoundEnabled: user?.ringtoneSettings?.alarmSoundEnabled ?? true,
+        selectedNotificationRingtone: user?.ringtoneSettings?.selectedNotificationRingtone ?? 'Neural Ping',
+        selectedAlarmRingtone: user?.ringtoneSettings?.selectedAlarmRingtone ?? 'Hydration Alert',
     });
 
     const [addresses, setAddresses] = useState<Address[]>(user?.addresses || []);
@@ -203,7 +214,7 @@ function ProfileContent() {
     };
 
     const handleDeleteAddress = async (index: number) => {
-        const updatedAddresses = addresses.filter((_: any, i: number) => i !== index);
+        const updatedAddresses = addresses.filter((_: unknown, i: number) => i !== index);
         try {
             setIsSyncing(true);
             await updateProfile({ addresses: updatedAddresses });
@@ -234,7 +245,8 @@ function ProfileContent() {
                         reminderTime: fertilizerReminderTime
                     }
                 },
-                dailyRoutine: dailyRoutineContent
+                dailyRoutine: dailyRoutineContent,
+                ringtoneSettings: ringtoneSettings
             });
             addNotification({
                 title: 'Settings Saved',
@@ -543,7 +555,7 @@ function ProfileContent() {
                         const formData = new FormData();
                         formData.append('profilePhoto', blob, 'profile.png');
 
-                        const apiResponse = await fetch('http://localhost:8000/api/users/uploadProfilePhoto', {
+                        const apiResponse = await fetch(`http://${typeof window !== "undefined" ? window.location.hostname : "localhost"}:8000/api/users/uploadProfilePhoto`, {
                             method: 'POST',
                             headers: {
                                 'Authorization': `Bearer ${localToken}`
@@ -558,7 +570,7 @@ function ProfileContent() {
                         }
 
                         // Success scenario
-                        const newPhotoUrl = `http://localhost:8000${data.data.fileUrl}`;
+                        const newPhotoUrl = `http://${typeof window !== "undefined" ? window.location.hostname : "localhost"}:8000${data.data.fileUrl}`;
                         setProfileImage(newPhotoUrl);
                         await updateProfile({ profilePhoto: newPhotoUrl }); // Synchronize auth context too
                         setEditImageFile(null);
@@ -592,7 +604,7 @@ function ProfileContent() {
         try {
             const localToken = localStorage.getItem('pc_token') || token;
 
-            const apiResponse = await fetch('http://localhost:8000/api/users/deleteProfilePhoto', {
+            const apiResponse = await fetch(`http://${typeof window !== "undefined" ? window.location.hostname : "localhost"}:8000/api/users/deleteProfilePhoto`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${localToken}`
@@ -661,6 +673,12 @@ function ProfileContent() {
                 dataEncryption: user.privacyGrid?.dataEncryption ?? true
             });
             setAddresses(user.addresses || []);
+            setRingtoneSettings({
+                notificationSoundEnabled: user.ringtoneSettings?.notificationSoundEnabled ?? true,
+                alarmSoundEnabled: user.ringtoneSettings?.alarmSoundEnabled ?? true,
+                selectedNotificationRingtone: user.ringtoneSettings?.selectedNotificationRingtone ?? 'Neural Ping',
+                selectedAlarmRingtone: user.ringtoneSettings?.selectedAlarmRingtone ?? 'Hydration Alert',
+            });
         }
     }, [user]);
 
@@ -807,7 +825,7 @@ function ProfileContent() {
                                 className="w-full mt-6 flex items-center justify-center gap-2 px-6 py-4 bg-rose-500/5 hover:bg-rose-500/10 text-rose-500 font-black rounded-2xl uppercase tracking-widest text-[10px] border border-rose-500/10 shadow-sm transition-all"
                             >
                                 <LogOut className="w-4 h-4" />
-                                Terminate Session
+                                {t('sidebar.logout')}
                             </button>
                         </div>
                     </div>
@@ -1009,7 +1027,7 @@ function ProfileContent() {
                                         </div>
                                         <div>
                                             <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{t('profile.addresses')}</h3>
-                                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Manage your shipping logs</p>
+                                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Monitor your current matrix position</p>
                                         </div>
                                     </div>
                                     <button
@@ -1043,7 +1061,7 @@ function ProfileContent() {
                                     {addresses.length === 0 && (
                                         <div className="col-span-full py-12 text-center bg-slate-50/30 dark:bg-white/5 rounded-[2.5rem] border-2 border-dashed border-slate-200 dark:border-white/10">
                                             <MapPin className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                                            <p className="text-sm font-bold text-slate-400">No nodes registered in the matrix.</p>
+                                            <p className="text-sm font-bold text-slate-400">No live coordinates recorded.</p>
                                         </div>
                                     )}
                                 </div>
@@ -1182,6 +1200,137 @@ function ProfileContent() {
                                                     disabled={!fertilizerReminderOn}
                                                     className="bg-transparent text-sm font-black text-pink-500 w-full focus:outline-none"
                                                 />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="p-8 bg-slate-50 dark:bg-pink-500/5 rounded-[2.5rem] border border-slate-100 dark:border-pink-500/10 transition-all hover:bg-white dark:hover:bg-pink-500/10 mt-6">
+                                        <div className="flex items-center gap-4 mb-6">
+                                            <div className="p-4 bg-purple-500/10 text-purple-500 rounded-2xl">
+                                                <Sliders className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Ringtone Settings</h4>
+                                                <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Notification & Alarm Audio</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="space-y-4">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-sm font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight">Notification Sound</span>
+                                                    <button
+                                                        onClick={() => setRingtoneSettings(prev => ({ ...prev, notificationSoundEnabled: !prev.notificationSoundEnabled }))}
+                                                        className={cn(
+                                                            "w-12 h-6 rounded-full relative transition-all",
+                                                            ringtoneSettings.notificationSoundEnabled ? "bg-pink-500" : "bg-slate-200 dark:bg-white/10"
+                                                        )}
+                                                    >
+                                                        <div className={cn(
+                                                            "absolute top-1 w-4 h-4 bg-white rounded-full transition-all",
+                                                            ringtoneSettings.notificationSoundEnabled ? "right-1" : "left-1"
+                                                        )} />
+                                                    </button>
+                                                </div>
+                                                <select
+                                                    value={ringtoneSettings.selectedNotificationRingtone}
+                                                    onChange={(e) => {
+                                                        const newVal = e.target.value as NotificationPreset;
+                                                        setRingtoneSettings(prev => ({ ...prev, selectedNotificationRingtone: newVal }));
+                                                        playNotification(newVal);
+                                                    }}
+                                                    className="w-full bg-white/50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl p-3 text-xs font-bold focus:outline-none"
+                                                >
+                                                    <option value="Neural Ping">Neural Ping</option>
+                                                    <option value="Digital Chime">Digital Chime</option>
+                                                    <option value="Soft Pop">Soft Pop</option>
+                                                    <option value="Custom">Custom Source</option>
+                                                </select>
+                                                {ringtoneSettings.selectedNotificationRingtone === "Custom" && (
+                                                    <div className="mt-2">
+                                                        <input 
+                                                            type="file" 
+                                                            accept="audio/*" 
+                                                            ref={notificationInputRef}
+                                                            className="hidden"
+                                                            onChange={(e) => {
+                                                                const file = e.target.files?.[0];
+                                                                if (file) {
+                                                                    loadCustomAudioFromFile('notification', file).then(() => {
+                                                                        playNotification("Custom");
+                                                                    }).catch(err => {
+                                                                        addNotification({title: "Audio Error", description: "Failed to load custom audio.", type: "alert"})
+                                                                    });
+                                                                }
+                                                            }}
+                                                        />
+                                                        <button 
+                                                            onClick={() => notificationInputRef.current?.click()}
+                                                            className="w-full py-2 bg-pink-500/10 text-pink-500 hover:bg-pink-500/20 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+                                                        >
+                                                            {customNotificationName ? `Selected: ${customNotificationName}` : "Choose Audio File"}
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-sm font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight">Alarm Sound</span>
+                                                    <button
+                                                        onClick={() => setRingtoneSettings(prev => ({ ...prev, alarmSoundEnabled: !prev.alarmSoundEnabled }))}
+                                                        className={cn(
+                                                            "w-12 h-6 rounded-full relative transition-all",
+                                                            ringtoneSettings.alarmSoundEnabled ? "bg-pink-500" : "bg-slate-200 dark:bg-white/10"
+                                                        )}
+                                                    >
+                                                        <div className={cn(
+                                                            "absolute top-1 w-4 h-4 bg-white rounded-full transition-all",
+                                                            ringtoneSettings.alarmSoundEnabled ? "right-1" : "left-1"
+                                                        )} />
+                                                    </button>
+                                                </div>
+                                                <select
+                                                    value={ringtoneSettings.selectedAlarmRingtone}
+                                                    onChange={(e) => {
+                                                        const newVal = e.target.value as AlarmPreset;
+                                                        setRingtoneSettings(prev => ({ ...prev, selectedAlarmRingtone: newVal }));
+                                                        stopAlarm(); // stop previous if playing
+                                                        setTimeout(() => playAlarm(newVal), 100);
+                                                    }}
+                                                    className="w-full bg-white/50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl p-3 text-xs font-bold focus:outline-none"
+                                                >
+                                                    <option value="Classic Pulse">Classic Pulse</option>
+                                                    <option value="Hydration Alert">Hydration Alert</option>
+                                                    <option value="Bio-Rhythm">Bio-Rhythm</option>
+                                                    <option value="Custom">Custom Source</option>
+                                                </select>
+                                                {ringtoneSettings.selectedAlarmRingtone === "Custom" && (
+                                                    <div className="mt-2">
+                                                        <input 
+                                                            type="file" 
+                                                            accept="audio/*" 
+                                                            ref={alarmInputRef}
+                                                            className="hidden"
+                                                            onChange={(e) => {
+                                                                const file = e.target.files?.[0];
+                                                                if (file) {
+                                                                    loadCustomAudioFromFile('alarm', file).then(() => {
+                                                                        stopAlarm();
+                                                                        setTimeout(() => playAlarm("Custom"), 100);
+                                                                    }).catch(err => {
+                                                                        addNotification({title: "Audio Error", description: "Failed to load custom alarm.", type: "alert"})
+                                                                    });
+                                                                }
+                                                            }}
+                                                        />
+                                                        <button 
+                                                            onClick={() => alarmInputRef.current?.click()}
+                                                            className="w-full py-2 bg-pink-500/10 text-pink-500 hover:bg-pink-500/20 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+                                                        >
+                                                            {customAlarmName ? `Selected: ${customAlarmName}` : "Choose Audio File"}
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

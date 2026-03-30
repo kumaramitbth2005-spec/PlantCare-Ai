@@ -38,6 +38,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 "ml-0 xl:ml-72 w-full"
             )}>
                 <Navbar onMenuClick={() => setIsSidebarOpen(true)} />
+                <div className="h-20" /> {/* Spacer for fixed navbar */}
                 <div className="p-4 sm:p-6 md:p-8">
                     {children}
                 </div>

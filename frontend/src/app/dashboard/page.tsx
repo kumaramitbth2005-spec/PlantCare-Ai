@@ -28,6 +28,7 @@ import { cn } from "../../lib/utils";
 import axios from "axios";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/AuthContext";
+import { useLanguage } from "@/lib/LanguageContext";
 import { format } from "date-fns";
 
 // Register ChartJS
@@ -104,6 +105,7 @@ function StatCard({ stat, index }: { stat: StatData, index: number }) {
 }
 
 export default function Dashboard() {
+    const { t } = useLanguage();
     const { user } = useAuth();
     const [data, setData] = useState<DashboardData | null>(null);
     const [history, setHistory] = useState<ScanRecord[]>([]);
@@ -116,8 +118,8 @@ export default function Dashboard() {
                 const headers = { Authorization: `Bearer ${token}` };
 
                 const [statsRes, historyRes] = await Promise.all([
-                    axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/detection/stats`, { headers }),
-                    axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/detection/history`, { headers })
+                    axios.get(`${process.env.NEXT_PUBLIC_API_URL || `http://${typeof window !== "undefined" ? window.location.hostname : "localhost"}:8000/api`}/detection/stats`, { headers }),
+                    axios.get(`${process.env.NEXT_PUBLIC_API_URL || `http://${typeof window !== "undefined" ? window.location.hostname : "localhost"}:8000/api`}/detection/history`, { headers })
                 ]);
 
                 if (statsRes.data.status === 'success') {
@@ -204,7 +206,7 @@ export default function Dashboard() {
                     <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">
                         Overview{" "}
                         <span className="text-pink-500 italic">
-                            Dashboard
+                            {t('sidebar.dashboard')}
                         </span>
                     </h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">

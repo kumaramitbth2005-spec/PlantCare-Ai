@@ -77,7 +77,7 @@ export default function RegisterPage() {
                         >
                             <Zap className="w-8 h-8 text-white fill-white/10" />
                         </div>
-                        <h1 className="text-3xl font-black text-white tracking-tighter mb-2">
+                        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter mb-2">
                             {t('auth.createAccount')}
                         </h1>
                         <p className="text-slate-400 font-bold">
@@ -107,10 +107,10 @@ export default function RegisterPage() {
                                     onChange={(e) => setFirstName(e.target.value)}
                                     placeholder="John"
                                     className={cn(
-                                        "w-full bg-white/5 border border-white/5 rounded-2xl py-4",
-                                        "pl-14 pr-6 text-sm font-bold text-white placeholder:text-slate-600",
-                                        "focus:ring-4 focus:ring-pink-500/10 outline-none transition-all",
-                                        "focus:bg-white/10"
+                                        "w-full bg-slate-100/50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl py-4",
+                                        "pl-14 pr-6 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600",
+                                        "focus:ring-4 focus:ring-pink-500/20 outline-none transition-all",
+                                        "focus:bg-slate-100 dark:focus:bg-white/10"
                                     )}
                                 />
                             </div>
@@ -118,7 +118,7 @@ export default function RegisterPage() {
 
                         <div className="space-y-2 col-span-1">
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">
-                                {t('auth.middleName')}
+                                {t('auth.middleName')} <span className="text-slate-400 normal-case tracking-normal text-[8px]">(Optional)</span>
                             </label>
                             <div className="relative group">
                                 <User
@@ -133,10 +133,10 @@ export default function RegisterPage() {
                                     onChange={(e) => setMiddleName(e.target.value)}
                                     placeholder="Quincy"
                                     className={cn(
-                                        "w-full bg-white/5 border border-white/5 rounded-2xl py-4",
-                                        "pl-14 pr-6 text-sm font-bold text-white placeholder:text-slate-600",
-                                        "focus:ring-4 focus:ring-pink-500/10 outline-none transition-all",
-                                        "focus:bg-white/10"
+                                        "w-full bg-slate-100/50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl py-4",
+                                        "pl-14 pr-6 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600",
+                                        "focus:ring-4 focus:ring-pink-500/20 outline-none transition-all",
+                                        "focus:bg-slate-100 dark:focus:bg-white/10"
                                     )}
                                 />
                             </div>
@@ -160,10 +160,10 @@ export default function RegisterPage() {
                                     onChange={(e) => setLastName(e.target.value)}
                                     placeholder="Doe"
                                     className={cn(
-                                        "w-full bg-white/5 border border-white/5 rounded-2xl py-4",
-                                        "pl-14 pr-6 text-sm font-bold text-white placeholder:text-slate-600",
-                                        "focus:ring-4 focus:ring-pink-500/10 outline-none transition-all",
-                                        "focus:bg-white/10"
+                                        "w-full bg-slate-100/50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl py-4",
+                                        "pl-14 pr-6 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600",
+                                        "focus:ring-4 focus:ring-pink-500/20 outline-none transition-all",
+                                        "focus:bg-slate-100 dark:focus:bg-white/10"
                                     )}
                                 />
                             </div>
@@ -187,10 +187,10 @@ export default function RegisterPage() {
                                     onChange={(e) => setContactNumber(e.target.value)}
                                     placeholder="+1 (555) 000-0000"
                                     className={cn(
-                                        "w-full bg-white/5 border border-white/5 rounded-2xl py-4",
-                                        "pl-14 pr-6 text-sm font-bold text-white placeholder:text-slate-600",
-                                        "focus:ring-4 focus:ring-pink-500/10 outline-none transition-all",
-                                        "focus:bg-white/10"
+                                        "w-full bg-slate-100/50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl py-4",
+                                        "pl-14 pr-6 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600",
+                                        "focus:ring-4 focus:ring-pink-500/20 outline-none transition-all",
+                                        "focus:bg-slate-100 dark:focus:bg-white/10"
                                     )}
                                 />
                             </div>
@@ -214,10 +214,10 @@ export default function RegisterPage() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="john@research.ai"
                                     className={cn(
-                                        "w-full bg-white/5 border border-white/5 rounded-2xl py-4",
-                                        "pl-14 pr-6 text-sm font-bold text-white placeholder:text-slate-600",
-                                        "focus:ring-4 focus:ring-pink-500/10 outline-none transition-all",
-                                        "focus:bg-white/10"
+                                        "w-full bg-slate-100/50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl py-4",
+                                        "pl-14 pr-6 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600",
+                                        "focus:ring-4 focus:ring-pink-500/20 outline-none transition-all",
+                                        "focus:bg-slate-100 dark:focus:bg-white/10"
                                     )}
                                 />
                             </div>
@@ -241,10 +241,10 @@ export default function RegisterPage() {
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
                                     className={cn(
-                                        "w-full bg-white/5 border border-white/5 rounded-2xl py-4",
-                                        "pl-14 pr-12 text-sm font-bold text-white placeholder:text-slate-600",
-                                        "focus:ring-4 focus:ring-pink-500/10 outline-none transition-all",
-                                        "focus:bg-white/10"
+                                        "w-full bg-slate-100/50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl py-4",
+                                        "pl-14 pr-12 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600",
+                                        "focus:ring-4 focus:ring-pink-500/20 outline-none transition-all",
+                                        "focus:bg-slate-100 dark:focus:bg-white/10"
                                     )}
                                 />
                                 <button
@@ -272,9 +272,9 @@ export default function RegisterPage() {
                                     value={accountType}
                                     onChange={(e) => setAccountType(e.target.value)}
                                     className={cn(
-                                        "w-full bg-white/5 border border-white/5 rounded-2xl py-4",
-                                        "pl-14 pr-6 text-sm font-bold text-white outline-none transition-all",
-                                        "focus:ring-4 focus:ring-pink-500/10 focus:bg-white/10",
+                                        "w-full bg-slate-100/50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl py-4",
+                                        "pl-14 pr-6 text-sm font-bold text-slate-900 dark:text-white outline-none transition-all",
+                                        "focus:ring-4 focus:ring-pink-500/20 focus:bg-slate-100 dark:focus:bg-white/10",
                                         "appearance-none cursor-pointer"
                                     )}
                                 >

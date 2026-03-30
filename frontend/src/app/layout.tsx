@@ -15,6 +15,7 @@ import { NotificationProvider } from "@/lib/NotificationContext";
 import { AuthProvider } from "@/lib/AuthContext";
 import { ThemeProvider } from "@/lib/ThemeContext";
 import MainLayout from "@/components/MainLayout";
+import AlarmScheduler from "@/components/AlarmScheduler";
 
 export default function RootLayout({
   children,
@@ -29,6 +30,7 @@ export default function RootLayout({
             <AuthProvider>
               <ThemeProvider>
                 <MainLayout>
+                  <AlarmScheduler />
                   {children}
                 </MainLayout>
               </ThemeProvider>

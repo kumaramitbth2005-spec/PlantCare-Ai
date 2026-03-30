@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import axios from 'axios';
 import { useRouter, usePathname } from 'next/navigation';
 
-const API_URL = 'http://localhost:8000/api/auth';
+const API_URL = `http://${typeof window !== "undefined" ? window.location.hostname : "localhost"}:8000/api/auth`;
 
 type User = {
     _id: string;
@@ -52,6 +52,13 @@ type User = {
         zip: string;
         isDefault: boolean;
     }>;
+    ringtoneSettings?: {
+        notificationSoundEnabled: boolean;
+        alarmSoundEnabled: boolean;
+        selectedNotificationRingtone: string;
+        selectedAlarmRingtone: string;
+        customRingtones?: string[];
+    };
 };
 
 type AuthContextType = {
@@ -195,7 +202,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const updateProfile = async (data: Partial<User>) => {
         try {
-            const res = await axios.patch('http://localhost:8000/api/users/updateMe', data, {
+            const res = await axios.patch(`http://${typeof window !== "undefined" ? window.location.hostname : "localhost"}:8000/api/users/updateMe`, data, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
