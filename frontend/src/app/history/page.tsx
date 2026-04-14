@@ -53,7 +53,7 @@ export default function HistoryPage() {
         const fetchHistory = async () => {
             try {
                 const token = localStorage.getItem("pc_token");
-                const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || `http://${typeof window !== "undefined" ? window.location.hostname : "localhost"}:8000/api`}/detection/history`, {
+                const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://plantcare-ai-1-vf3t.onrender.com/api'}/detection/history`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (res.data.status === 'success') {
@@ -93,7 +93,7 @@ export default function HistoryPage() {
         if (!deleteId) return;
         try {
             const token = localStorage.getItem("pc_token");
-            await axios.delete(`${process.env.NEXT_PUBLIC_API_URL || `http://${typeof window !== "undefined" ? window.location.hostname : "localhost"}:8000/api`}/detection/${deleteId}`, {
+            await axios.delete(`${process.env.NEXT_PUBLIC_API_URL || 'https://plantcare-ai-1-vf3t.onrender.com/api'}/detection/${deleteId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setRecords(prev => prev.filter(r => r._id !== deleteId));

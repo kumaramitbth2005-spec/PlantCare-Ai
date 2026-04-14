@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import axios from 'axios';
 import { useRouter, usePathname } from 'next/navigation';
 
-const API_URL = `http://${typeof window !== "undefined" ? window.location.hostname : "localhost"}:8000/api/auth`;
+const API_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/auth` : 'https://plantcare-ai-1-vf3t.onrender.com/api/auth';
 
 type User = {
     _id: string;
@@ -202,7 +202,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const updateProfile = async (data: Partial<User>) => {
         try {
-            const res = await axios.patch(`http://${typeof window !== "undefined" ? window.location.hostname : "localhost"}:8000/api/users/updateMe`, data, {
+            const res = await axios.patch(`${process.env.NEXT_PUBLIC_API_URL || 'https://plantcare-ai-1-vf3t.onrender.com/api'}/users/updateMe`, data, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 

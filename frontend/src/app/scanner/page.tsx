@@ -24,8 +24,7 @@ import { useNotifications } from "@/lib/NotificationContext";
 import { useSoundSystem, NotificationPreset } from "@/lib/useSoundSystem";
 import { useAuth } from "@/lib/AuthContext";
 
-// API Configuration - Using Node Backend Proxy
-const API_URL = `http://${typeof window !== "undefined" ? window.location.hostname : "localhost"}:8000/api/detection/detect`;
+const API_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/detection/detect` : 'https://plantcare-ai-1-vf3t.onrender.com/api/detection/detect';
 
 export default function ScannerPage() {
     const { user } = useAuth();
