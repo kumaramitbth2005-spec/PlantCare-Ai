@@ -153,7 +153,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const register = async (userData: Record<string, unknown>) => {
         try {
-            const res = await axios.post(`${API_URL}/register`, userData);
+            const res = await axios.post(`${API_URL}/register`, userData, {
+                timeout: 60000 // 60 seconds timeout for Render cold starts
+            });
             if (res.data.status === 'success') {
                 const { token, data } = res.data;
                 setToken(token);
@@ -161,12 +163,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 localStorage.setItem('pc_token', token);
                 localStorage.setItem('pc_user', JSON.stringify(data.user));
                 router.push('/dashboard');
+            } else {
+                throw new Error(res.data.message || 'Registration failed');
             }
         } catch (err: unknown) {
             if (axios.isAxiosError(err)) {
+                if (err.code === 'ECONNABORTED') {
+                    throw new Error('Connection timed out. The server might be asleep or unreachable.');
+                }
                 throw new Error(err.response?.data?.message || 'Registration failed');
             }
-            throw new Error('Registration failed');
+            throw new Error((err as Error).message || 'Registration failed');
         }
     };
 

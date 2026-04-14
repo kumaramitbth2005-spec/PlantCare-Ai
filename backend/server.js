@@ -35,7 +35,7 @@ app.get('/', (req, res) => {
 const DB = process.env.DATABASE || 'mongodb://localhost:27017/plantcare';
 
 mongoose
-    .connect(DB)
+    .connect(DB, { serverSelectionTimeoutMS: 5000 })
     .then(() => console.log('DB connection successful!'))
     .catch((err) => console.log('DB connection error:', err));
 
