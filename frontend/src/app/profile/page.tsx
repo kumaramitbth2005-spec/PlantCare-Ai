@@ -1257,7 +1257,7 @@ function ProfileContent() {
                                                                 if (file) {
                                                                     loadCustomAudioFromFile('notification', file).then(() => {
                                                                         playNotification("Custom");
-                                                                    }).catch(err => {
+                                                                    }).catch(() => {
                                                                         addNotification({title: "Audio Error", description: "Failed to load custom audio.", type: "alert"})
                                                                     });
                                                                 }
@@ -1317,7 +1317,7 @@ function ProfileContent() {
                                                                     loadCustomAudioFromFile('alarm', file).then(() => {
                                                                         stopAlarm();
                                                                         setTimeout(() => playAlarm("Custom"), 100);
-                                                                    }).catch(err => {
+                                                                    }).catch(() => {
                                                                         addNotification({title: "Audio Error", description: "Failed to load custom alarm.", type: "alert"})
                                                                     });
                                                                 }

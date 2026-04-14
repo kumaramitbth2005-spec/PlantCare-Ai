@@ -8,7 +8,8 @@
         "fix-ports": "fix-ports.bat",
         "backend": "npm run dev --prefix backend",
         "frontend": "npm run dev --prefix frontend -- -p 3000",
-        "ai": "cd ai_service && python app.py"
+        "ai": "cd ai_service && python app.py",
+        "lint": "npm run lint --prefix frontend"
     },
     "devDependencies": {
         "concurrently": "^8.2.2"
