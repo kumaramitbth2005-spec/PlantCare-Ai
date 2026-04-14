@@ -36,7 +36,7 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
                 audioRef.current.currentTime = 0;
             }
         }
-    }, [isAlarmActive, user?.ringtoneSettings]);
+    }, [isAlarmActive, user]);
     
     useEffect(() => {
         if (!user || !user.plantReminders?.water?.enabled) return;
@@ -148,8 +148,7 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
         path?: string;
         action?: string;
         desc: string;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        icon: any;
+        icon: React.ElementType;
     }
 
     const handleSearchSelect = (item: SearchItem) => {

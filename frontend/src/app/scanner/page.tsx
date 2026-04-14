@@ -11,7 +11,6 @@ import {
     Search,
     Zap,
     Sparkles,
-    Camera,
     Video,
     FlipHorizontal,
     CameraOff
@@ -164,7 +163,7 @@ export default function ScannerPage() {
         multiple: false
     });
 
-    const handleScan = async (fileToScanOrEvent?: any) => {
+    const handleScan = async (fileToScanOrEvent?: File | React.MouseEvent | unknown) => {
         let targetFile = file;
         if (fileToScanOrEvent && fileToScanOrEvent instanceof File) {
             targetFile = fileToScanOrEvent;
@@ -198,14 +197,15 @@ export default function ScannerPage() {
             } else {
                 setError(response.data.message || "Neural link failure. Check AI backend.");
             }
-        } catch (err: any) {
-            console.error("Scan Error:", err);
+        } catch (err: unknown) {
+            const error = err as { response?: { status?: number; data?: { message?: string } } };
+            console.error("Scan Error:", error);
             
-            if (err.response?.status === 401) {
+            if (error.response?.status === 401) {
                 setError("Authentication required or session expired. Redirecting to login...");
                 setTimeout(() => router.push('/login'), 2000);
-            } else if (err.response?.data?.message) {
-                setError(err.response.data.message);
+            } else if (error.response?.data?.message) {
+                setError(error.response.data.message);
             } else {
                 setError("Connection lost. Please ensure the backend server is running.");
             }

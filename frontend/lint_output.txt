@@ -4,14 +4,13 @@
 
 
 C:\Users\HP\Desktop\PlantCare\frontend\src\app\profile\page.tsx
-   184:18  warning  'err' is defined but never used           @typescript-eslint/no-unused-vars
-   195:18  warning  'err' is defined but never used           @typescript-eslint/no-unused-vars
-   209:18  warning  'err' is defined but never used           @typescript-eslint/no-unused-vars
-   217:55  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-   223:18  warning  'err' is defined but never used           @typescript-eslint/no-unused-vars
-   256:18  warning  'err' is defined but never used           @typescript-eslint/no-unused-vars
-  1260:78  warning  'err' is defined but never used           @typescript-eslint/no-unused-vars
-  1320:78  warning  'err' is defined but never used           @typescript-eslint/no-unused-vars
+   184:18  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+   195:18  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+   209:18  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+   223:18  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+   256:18  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+  1260:78  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+  1320:78  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
 
 C:\Users\HP\Desktop\PlantCare\frontend\src\app\scanner\page.tsx
    14:5   warning  'Camera' is defined but never used        @typescript-eslint/no-unused-vars
@@ -31,5 +30,5 @@ C:\Users\HP\Desktop\PlantCare\frontend\src\lib\useSoundSystem.ts
    17:68  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
   172:56  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
 
-Γ£û 18 problems (5 errors, 13 warnings)
+Γ£û 17 problems (4 errors, 13 warnings)
 

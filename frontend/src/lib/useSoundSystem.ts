@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 
 export type NotificationPreset = "Neural Ping" | "Digital Chime" | "Soft Pop" | "Custom";
 export type AlarmPreset = "Hydration Alert" | "Classic Pulse" | "Bio-Rhythm" | "Custom";
@@ -14,7 +14,7 @@ class WebAudioSynthesizer {
     private init() {
         if (typeof window === "undefined") return;
         if (!this.audioCtx) {
-            this.audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+            this.audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
         }
         if (this.audioCtx.state === "suspended") {
             this.audioCtx.resume();
@@ -169,7 +169,7 @@ export const useSoundSystem = () => {
 
     const triggerVibration = useCallback((pattern: number | number[]) => {
         if (typeof navigator !== "undefined" && navigator.vibrate) {
-            try { navigator.vibrate(pattern); } catch (e) { /* ignore */ }
+            try { navigator.vibrate(pattern); } catch { /* ignore */ }
         }
     }, []);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { useSoundSystem, AlarmPreset } from "@/lib/useSoundSystem";
 import { BellRing, X, Timer } from "lucide-react";
@@ -29,7 +29,10 @@ export default function AlarmScheduler() {
             const fertEnabled = user.plantReminders?.fertilizer?.enabled;
             const fertTime = user.plantReminders?.fertilizer?.reminderTime;
 
-            const ringtoneSettings = (user.ringtoneSettings || {}) as any;
+            const ringtoneSettings = (user.ringtoneSettings || {}) as {
+                alarmSoundEnabled?: boolean;
+                selectedAlarmRingtone?: string;
+            };
             const isAlarmOffGlobally = ringtoneSettings.alarmSoundEnabled === false;
             
             if (isAlarmOffGlobally) return;

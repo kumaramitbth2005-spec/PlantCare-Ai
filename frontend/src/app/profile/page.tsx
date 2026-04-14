@@ -181,7 +181,7 @@ function ProfileContent() {
         try {
             await updateProfile({ scannerSettings: updated });
             addNotification({ title: 'Scanner Updated', description: `${key} preference saved.`, type: 'info' });
-        } catch (err) {
+        } catch {
             addNotification({ title: 'Update Failed', description: 'Could not save scanner settings.', type: 'alert' });
         }
     };
@@ -192,7 +192,7 @@ function ProfileContent() {
         try {
             await updateProfile({ privacyGrid: updated });
             addNotification({ title: 'Privacy Updated', description: 'Your security preferences have been synchronized.', type: 'info' });
-        } catch (err) {
+        } catch {
             addNotification({ title: 'Update Failed', description: 'Could not save privacy settings.', type: 'alert' });
         }
     };
@@ -206,7 +206,7 @@ function ProfileContent() {
             setIsAddingAddress(false);
             setNewAddress({ type: 'home', street: '', city: '', state: '', zip: '' });
             addNotification({ title: 'Node Registered', description: 'New shipping node has been added to the registry.', type: 'update' });
-        } catch (err) {
+        } catch {
             addNotification({ title: 'Failed', description: 'Could not add address.', type: 'alert' });
         } finally {
             setIsSyncing(false);
@@ -220,7 +220,7 @@ function ProfileContent() {
             await updateProfile({ addresses: updatedAddresses });
             setAddresses(updatedAddresses);
             addNotification({ title: 'Node Deleted', description: 'Node removed from registry.', type: 'info' });
-        } catch (err) {
+        } catch {
             addNotification({ title: 'Failed', description: 'Could not delete address.', type: 'alert' });
         } finally {
             setIsSyncing(false);
@@ -253,7 +253,7 @@ function ProfileContent() {
                 description: 'Your growth protocols have been synchronized.',
                 type: 'update'
             });
-        } catch (err) {
+        } catch {
             addNotification({
                 title: 'Sync Failed',
                 description: 'Could not update your plant care settings.',

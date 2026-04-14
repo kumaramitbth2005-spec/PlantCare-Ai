@@ -1,0 +1,22 @@
+C:\Users\HP\Desktop\PlantCare\frontend\src\app\profile\page.tsx
+  Line 184: Warning - 'err' is defined but never used. (@typescript-eslint/no-unused-vars)
+  Line 195: Warning - 'err' is defined but never used. (@typescript-eslint/no-unused-vars)
+  Line 209: Warning - 'err' is defined but never used. (@typescript-eslint/no-unused-vars)
+  Line 223: Warning - 'err' is defined but never used. (@typescript-eslint/no-unused-vars)
+  Line 256: Warning - 'err' is defined but never used. (@typescript-eslint/no-unused-vars)
+  Line 1260: Warning - 'err' is defined but never used. (@typescript-eslint/no-unused-vars)
+  Line 1320: Warning - 'err' is defined but never used. (@typescript-eslint/no-unused-vars)
+C:\Users\HP\Desktop\PlantCare\frontend\src\app\scanner\page.tsx
+  Line 14: Warning - 'Camera' is defined but never used. (@typescript-eslint/no-unused-vars)
+  Line 167: Error - Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+  Line 201: Error - Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+C:\Users\HP\Desktop\PlantCare\frontend\src\components\AlarmScheduler.tsx
+  Line 3: Warning - 'useState' is defined but never used. (@typescript-eslint/no-unused-vars)
+  Line 32: Error - Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+C:\Users\HP\Desktop\PlantCare\frontend\src\components\Navbar.tsx
+  Line 39: Warning - React Hook useEffect has a missing dependency: 'user'. Either include it or remove the dependency array. (react-hooks/exhaustive-deps)
+C:\Users\HP\Desktop\PlantCare\frontend\src\lib\useSoundSystem.ts
+  Line 3: Warning - 'useRef' is defined but never used. (@typescript-eslint/no-unused-vars)
+  Line 3: Warning - 'useEffect' is defined but never used. (@typescript-eslint/no-unused-vars)
+  Line 17: Error - Unexpected any. Specify a different type. (@typescript-eslint/no-explicit-any)
+  Line 172: Warning - 'e' is defined but never used. (@typescript-eslint/no-unused-vars)
