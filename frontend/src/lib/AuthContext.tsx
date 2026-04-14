@@ -105,7 +105,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 // Verify token with backend
                 try {
                     const res = await axios.get(`${API_URL}/me`, {
-                        headers: { Authorization: `Bearer ${savedToken}` }
+                        headers: { Authorization: `Bearer ${savedToken}` },
+                        timeout: 15000 // 15 seconds timeout
                     });
                     if (res.data.status === 'success') {
                         setUser(res.data.data.user);
@@ -217,7 +218,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const updateProfile = async (data: Partial<User>) => {
         try {
             const res = await axios.patch(`${process.env.NEXT_PUBLIC_API_URL || 'https://plantcare-ai-1-vf3t.onrender.com/api'}/users/updateMe`, data, {
-                headers: { Authorization: `Bearer ${token}` }
+                headers: { Authorization: `Bearer ${token}` },
+                timeout: 15000 // 15 seconds timeout
             });
 
             if (res.data.status === 'success') {

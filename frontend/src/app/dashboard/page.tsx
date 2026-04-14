@@ -118,8 +118,14 @@ export default function Dashboard() {
                 const headers = { Authorization: `Bearer ${token}` };
 
                 const [statsRes, historyRes] = await Promise.all([
-                    axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://plantcare-ai-1-vf3t.onrender.com/api'}/detection/stats`, { headers }),
-                    axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://plantcare-ai-1-vf3t.onrender.com/api'}/detection/history`, { headers })
+                    axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://plantcare-ai-1-vf3t.onrender.com/api'}/detection/stats`, { 
+                        headers,
+                        timeout: 15000 
+                    }),
+                    axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://plantcare-ai-1-vf3t.onrender.com/api'}/detection/history`, { 
+                        headers,
+                        timeout: 15000 
+                    })
                 ]);
 
                 if (statsRes.data.status === 'success') {
