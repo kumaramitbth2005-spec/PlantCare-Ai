@@ -134,7 +134,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const login = async (email: string, password: string) => {
         try {
-            const res = await axios.post(`${API_URL}/login`, { email, password });
+            const res = await axios.post(`${API_URL}/login`, { email, password }, {
+                timeout: 15000 // 15 seconds timeout
+            });
             if (res.data.status === 'success') {
                 const { token, data } = res.data;
                 setToken(token);
@@ -142,19 +144,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 localStorage.setItem('pc_token', token);
                 localStorage.setItem('pc_user', JSON.stringify(data.user));
                 router.push('/dashboard');
+            } else {
+                throw new Error(res.data.message || 'Login failed');
             }
         } catch (err: unknown) {
             if (axios.isAxiosError(err)) {
+                if (err.code === 'ECONNABORTED') {
+                    throw new Error('Connection timed out. The server might be offline.');
+                }
                 throw new Error(err.response?.data?.message || 'Login failed');
             }
-            throw new Error('Login failed');
+            throw new Error((err as Error).message || 'Login failed');
         }
     };
 
     const register = async (userData: Record<string, unknown>) => {
         try {
             const res = await axios.post(`${API_URL}/register`, userData, {
-                timeout: 60000 // 60 seconds timeout for Render cold starts
+                timeout: 15000 // 15 seconds timeout to prevent indefinite spinning
             });
             if (res.data.status === 'success') {
                 const { token, data } = res.data;
@@ -169,7 +176,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch (err: unknown) {
             if (axios.isAxiosError(err)) {
                 if (err.code === 'ECONNABORTED') {
-                    throw new Error('Connection timed out. The server might be asleep or unreachable.');
+                    throw new Error('Connection timed out. Server might be down or warming up.');
                 }
                 throw new Error(err.response?.data?.message || 'Registration failed');
             }
