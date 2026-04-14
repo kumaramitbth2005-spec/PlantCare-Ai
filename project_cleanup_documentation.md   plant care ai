@@ -1,0 +1,65 @@
+# PlantCare AI - Codebase Maintenance & Cleanup Documentation
+
+This document serves as a record of the recent maintenance, linting, and environment cleanup performed on the **PlantCare AI** project.
+
+## 1. Codebase Linting & TypeScript Fixes
+
+A comprehensive check was executed against the `frontend` using ESLint. Originally, the application had 17 linting issues (errors and warnings), primarily related to unused variables and loose `any` types. 
+
+### Key Files Updated:
+*   **`src/app/profile/page.tsx`**: Removed unused `err` variables inside multiple `catch` blocks which were triggering warnings.
+*   **`src/app/scanner/page.tsx`**: 
+    *   Removed unused `Camera` lucide-react icon import.
+    *   Replaced explicit `any` types in `catch` blocks with safer typing (`err: unknown` cast to structured error objects).
+*   **`src/components/AlarmScheduler.tsx`**:
+    *   Removed unused `useState` import.
+    *   Replaced `any` object cast with a strict interface for `ringtoneSettings`.
+*   **`src/components/Navbar.tsx`**:
+    *   Added the missing `user` state context to the `useEffect` dependency array for the alarm trigger logic.
+    *   Replaced `any` typing on search items with `React.ElementType` for the Lucide icons.
+    *   Removed unnecessary `eslint-disable` directives.
+*   **`src/lib/useSoundSystem.ts`**:
+    *   Removed unused `useEffect` and `useRef` imports.
+    *   Cleaned up unused `e` parameter in the navigator vibrate catch block.
+    *   Added proper TypeScript inference to bypass the compiler error for `webkitAudioContext`.
+
+> [!SUCCESS] 
+> **Current Status**: The frontend currently passes all ESLint checks with **0 Errors and 0 Warnings**.
+
+---
+
+## 2. Environment Updates
+
+### Root `package.json` Improvements
+The root `package.json` file orchestrates the entire monolithic structure (frontend, backend, and AI service).
+
+A new command has been added to make future health checks easier:
+```json
+"scripts": {
+    "lint": "npm run lint --prefix frontend"
+}
+```
+You can now run `npm run lint` directly from the main project directory (`c:\Users\HP\Desktop\PlantCare`) to instantly check the health of the React frontend.
+
+### Port Conflicts & Cleanup
+Due to multiple concurrent runs of `npm run dev`, some Node.js and Python processes were left stranded in the background, specifically locking up:
+*   **Port 3000** (React Frontend)
+*   **Port 5000** (Python AI Service)
+*   **Port 8000** (Node.js Backend)
+
+These processes caused `EADDRINUSE` crashes. To resolve this, a forceful termination of tasks utilizing these ports was initiated.
+
+> [!TIP]
+> If you experience `EADDRINUSE` errors again in the future, you can execute the included **`fix-ports.bat`** script by double-clicking it or typing `.\fix-ports.bat` in your terminal. This will automatically clear ports 3000, 5000, and 8000 for you.
+
+---
+
+## 3. GitHub Synchronization
+
+All code adjustments and configuration edits successfully passed local verification and were committed to the primary branch.
+
+**Commit References:**
+*   `Fix: Resolve linting errors and cleanup codebase`
+*   `Fix: Add root lint script and resolve remaining unused variables`
+
+The remote `origin/main` branch is fully synchronized with the local environment.
