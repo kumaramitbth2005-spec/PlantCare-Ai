@@ -1,10 +1,9 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import api from './api';
 import axios from 'axios';
 import { useRouter, usePathname } from 'next/navigation';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/auth` : 'https://plantcare-ai-1-vf3t.onrender.com/api/auth';
 
 type User = {
     _id: string;
@@ -104,10 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                 // Verify token with backend
                 try {
-                    const res = await axios.get(`${API_URL}/me`, {
-                        headers: { Authorization: `Bearer ${savedToken}` },
-                        timeout: 15000 // 15 seconds timeout
-                    });
+                    const res = await api.get('/auth/me');
                     if (res.data.status === 'success') {
                         setUser(res.data.data.user);
                         localStorage.setItem('pc_user', JSON.stringify(res.data.data.user));
@@ -135,9 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const login = async (email: string, password: string) => {
         try {
-            const res = await axios.post(`${API_URL}/login`, { email, password }, {
-                timeout: 15000 // 15 seconds timeout
-            });
+            const res = await api.post('/auth/login', { email, password });
             if (res.data.status === 'success') {
                 const { token, data } = res.data;
                 setToken(token);
@@ -161,9 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const register = async (userData: Record<string, unknown>) => {
         try {
-            const res = await axios.post(`${API_URL}/register`, userData, {
-                timeout: 15000 // 15 seconds timeout to prevent indefinite spinning
-            });
+            const res = await api.post('/auth/register', userData);
             if (res.data.status === 'success') {
                 const { token, data } = res.data;
                 setToken(token);
@@ -187,7 +179,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const forgotPassword = async (contact: string) => {
         try {
-            await axios.post(`${API_URL}/forgotPassword`, { contact });
+            await api.post('/auth/forgotPassword', { contact });
         } catch (err: unknown) {
             if (axios.isAxiosError(err)) {
                 throw new Error(err.response?.data?.message || 'Failed to send OTP');
@@ -198,7 +190,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const resetPassword = async (otp: string, password: string) => {
         try {
-            const res = await axios.post(`${API_URL}/resetPassword`, { otp, password });
+            const res = await api.post('/auth/resetPassword', { otp, password });
             if (res.data.status === 'success') {
                 const { token, data } = res.data;
                 setToken(token);
@@ -217,10 +209,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const updateProfile = async (data: Partial<User>) => {
         try {
-            const res = await axios.patch(`${process.env.NEXT_PUBLIC_API_URL || 'https://plantcare-ai-1-vf3t.onrender.com/api'}/users/updateMe`, data, {
-                headers: { Authorization: `Bearer ${token}` },
-                timeout: 15000 // 15 seconds timeout
-            });
+            const res = await api.patch('/users/updateMe', data);
 
             if (res.data.status === 'success') {
                 const updatedUser = res.data.data.user;

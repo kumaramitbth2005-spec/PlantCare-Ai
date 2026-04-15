@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useState, useEffect, useMemo } from "react";
-import axios from "axios";
+import api from "@/lib/api";
 import { format } from "date-fns";
 import { useAuth } from "@/lib/AuthContext";
 
@@ -52,10 +52,7 @@ export default function HistoryPage() {
     useEffect(() => {
         const fetchHistory = async () => {
             try {
-                const token = localStorage.getItem("pc_token");
-                const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://plantcare-ai-1-vf3t.onrender.com/api'}/detection/history`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const res = await api.get('/detection/history');
                 if (res.data.status === 'success') {
                     setRecords(res.data.data.history);
                 }
@@ -92,10 +89,7 @@ export default function HistoryPage() {
     const handleDelete = async () => {
         if (!deleteId) return;
         try {
-            const token = localStorage.getItem("pc_token");
-            await axios.delete(`${process.env.NEXT_PUBLIC_API_URL || 'https://plantcare-ai-1-vf3t.onrender.com/api'}/detection/${deleteId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.delete(`/detection/${deleteId}`);
             setRecords(prev => prev.filter(r => r._id !== deleteId));
             setDeleteId(null);
         } catch (err) {

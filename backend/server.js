@@ -14,7 +14,11 @@ const detectionRoutes = require('./routes/detectionRoutes');
 const app = express();
 
 // 1) GLOBAL MIDDLEWARES
-app.use(cors());
+app.use(cors({
+    origin: process.env.FRONTEND_URL || '*', // Allow frontend URL from env or anywhere for testing
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+}));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -32,15 +36,26 @@ app.get('/', (req, res) => {
 });
 
 // 3) DB CONNECTION
-const DB = process.env.DATABASE || 'mongodb://localhost:27017/plantcare';
+const DB = process.env.MONGO_URI || process.env.DATABASE || 'mongodb://localhost:27017/plantcare';
+
+mongoose.set('strictQuery', true); // Disable mongoose buffering timeout issue
 
 mongoose
-    .connect(DB, { serverSelectionTimeoutMS: 5000 })
-    .then(() => console.log('DB connection successful!'))
-    .catch((err) => console.log('DB connection error:', err));
-
-// 4) START SERVER
-const port = process.env.PORT || 8000;
-app.listen(port, () => {
-    console.log(`App running on port ${port}...`);
-});
+    .connect(DB, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        serverSelectionTimeoutMS: 5000, // 5 second timeout for server selection
+    })
+    .then(() => {
+        console.log('DB connection successful!');
+        
+        // 4) START SERVER
+        const port = process.env.PORT || 8000;
+        app.listen(port, () => {
+            console.log(`App running on port ${port}...`);
+        });
+    })
+    .catch((err) => {
+        console.error('DB connection error:', err);
+        process.exit(1); // Exit process if DB connection fails
+    });

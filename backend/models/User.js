@@ -59,6 +59,8 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Product' // Assuming a Product model will exist or just IDs for now
     }],
+
+    
     plantReminders: {
         water: {
             enabled: { type: Boolean, default: true },

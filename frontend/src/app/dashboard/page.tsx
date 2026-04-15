@@ -25,7 +25,7 @@ import {
 import { Line, Doughnut } from 'react-chartjs-2';
 import Link from "next/link";
 import { cn } from "../../lib/utils";
-import axios from "axios";
+import api from "@/lib/api";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { useLanguage } from "@/lib/LanguageContext";
@@ -110,22 +110,15 @@ export default function Dashboard() {
     const [data, setData] = useState<DashboardData | null>(null);
     const [history, setHistory] = useState<ScanRecord[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [fetchError, setFetchError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
+            setFetchError(null);
             try {
-                const token = localStorage.getItem("pc_token");
-                const headers = { Authorization: `Bearer ${token}` };
-
                 const [statsRes, historyRes] = await Promise.all([
-                    axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://plantcare-ai-1-vf3t.onrender.com/api'}/detection/stats`, { 
-                        headers,
-                        timeout: 15000 
-                    }),
-                    axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'https://plantcare-ai-1-vf3t.onrender.com/api'}/detection/history`, { 
-                        headers,
-                        timeout: 15000 
-                    })
+                    api.get('/detection/stats'),
+                    api.get('/detection/history')
                 ]);
 
                 if (statsRes.data.status === 'success') {
@@ -136,6 +129,7 @@ export default function Dashboard() {
                 }
             } catch (err) {
                 console.error("Dashboard Fetch Error:", err);
+                setFetchError("Unable to load live dashboard data. Check network connection.");
             } finally {
                 setIsLoading(false);
             }
@@ -158,10 +152,10 @@ export default function Dashboard() {
         datasets: [
             {
                 data: [
-                    data?.diseaseStats.find(s => s._id === 'Fungal')?.count || 0,
-                    data?.diseaseStats.find(s => s._id === 'Bacterial')?.count || 0,
-                    data?.diseaseStats.find(s => s._id === 'Virus')?.count || 0,
-                    data?.diseaseStats.find(s => s._id === 'Healthy')?.count || 0,
+                    data?.diseaseStats?.find?.(s => s._id === 'Fungal')?.count || 0,
+                    data?.diseaseStats?.find?.(s => s._id === 'Bacterial')?.count || 0,
+                    data?.diseaseStats?.find?.(s => s._id === 'Virus')?.count || 0,
+                    data?.diseaseStats?.find?.(s => s._id === 'Healthy')?.count || 0,
                 ],
                 backgroundColor: [
                     'rgba(236, 72, 153, 0.8)', // Primary Pink
@@ -239,12 +233,27 @@ export default function Dashboard() {
             </div>
 
             {isLoading && (
-                <div className="flex items-center justify-center py-20">
+                <div className="flex flex-col items-center justify-center py-20 gap-4">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500"></div>
+                    <span className="text-sm font-bold text-slate-500 tracking-widest uppercase animate-pulse">Initializing Data Stream...</span>
                 </div>
             )}
 
-            {!isLoading && (
+            {!isLoading && fetchError && (
+                <div className="glass-card p-10 flex flex-col items-center justify-center text-center max-w-2xl mx-auto border-rose-500/20 bg-rose-500/5">
+                    <AlertTriangle className="w-12 h-12 text-rose-500 mb-4 opacity-80" />
+                    <h3 className="text-xl font-black text-rose-500 tracking-tight mb-2">Connection Timeout</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-bold mb-6">{fetchError}</p>
+                    <button 
+                        onClick={() => window.location.reload()}
+                        className="btn-primary px-8 py-3 bg-gradient-to-r from-rose-500 to-pink-600"
+                    >
+                        Retry Connection
+                    </button>
+                </div>
+            )}
+
+            {!isLoading && !fetchError && (
                 <>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                         {/* Main Chart */}
