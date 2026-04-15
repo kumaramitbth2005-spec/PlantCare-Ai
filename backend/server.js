@@ -42,9 +42,7 @@ mongoose.set('strictQuery', true); // Disable mongoose buffering timeout issue
 
 mongoose
     .connect(DB, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        serverSelectionTimeoutMS: 5000, // 5 second timeout for server selection
+        serverSelectionTimeoutMS: 10000, // 10 second timeout for server selection
     })
     .then(() => {
         console.log('DB connection successful!');
