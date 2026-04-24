@@ -29,7 +29,7 @@ const createSendToken = (user, statusCode, res) => {
 
 exports.register = async (req, res, next) => {
     try {
-        const newUser = await User.create({
+        const newUser = new User({
             firstName: req.body.firstName,
             middleName: req.body.middleName,
             lastName: req.body.lastName,
@@ -39,7 +39,45 @@ exports.register = async (req, res, next) => {
             accountType: req.body.accountType
         });
 
-        createSendToken(newUser, 201, res);
+        // Generate verification token
+        const verifyToken = newUser.createEmailVerificationToken();
+        await newUser.save();
+
+        // Create verification URL
+        const backendUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+        const verifyUrl = `${backendUrl}/api/auth/verifyEmail/${verifyToken}`;
+
+        // Send email
+        const message = `Welcome to PlantCare AI!\n\nPlease verify your email address by clicking on the link below:\n\n${verifyUrl}\n\nThis link will expire in 24 hours.`;
+
+        // FALLBACK: If dummy credentials are used
+        const isDummyEmail = !process.env.EMAIL_USERNAME || process.env.EMAIL_USERNAME.includes('your-email');
+        if (isDummyEmail) {
+            console.log(`[TESTING MODE] Dummy Email detected. Verification URL for ${newUser.email} is: ${verifyUrl}`);
+            return res.status(201).json({
+                status: 'success',
+                message: 'User registered! (Testing Mode: Check backend console for verification link)'
+            });
+        }
+
+        try {
+            await sendEmail({
+                email: newUser.email,
+                subject: 'Verify your PlantCare AI Email',
+                message
+            });
+
+            res.status(201).json({
+                status: 'success',
+                message: 'Registration successful! Please check your email to verify your account.'
+            });
+        } catch (err) {
+            console.error("Email Error:", err);
+            return res.status(500).json({
+                status: 'error',
+                message: 'Registered successfully, but there was an error sending the verification email. Please contact support.'
+            });
+        }
     } catch (err) {
         res.status(400).json({
             status: 'fail',
@@ -70,8 +108,51 @@ exports.login = async (req, res, next) => {
             });
         }
 
+        // 2.5) Check if user is verified
+        if (!user.isVerified) {
+            return res.status(401).json({
+                status: 'fail',
+                message: 'Please verify your email before logging in. Check your inbox for the verification link.'
+            });
+        }
+
         // 3) If everything ok, send token to client
         createSendToken(user, 200, res);
+    } catch (err) {
+        res.status(400).json({
+            status: 'fail',
+            message: err.message
+        });
+    }
+};
+
+exports.verifyEmail = async (req, res, next) => {
+    try {
+        // 1) Get user based on token
+        const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+
+        const user = await User.findOne({
+            emailVerificationToken: hashedToken,
+            emailVerificationExpires: { $gt: Date.now() }
+        });
+
+        // 2) If token has not expired, and there is user, set verified
+        if (!user) {
+            return res.status(400).json({
+                status: 'fail',
+                message: 'Verification token is invalid or has expired'
+            });
+        }
+
+        user.isVerified = true;
+        user.emailVerificationToken = undefined;
+        user.emailVerificationExpires = undefined;
+        await user.save({ validateBeforeSave: false });
+
+        // Redirect to frontend login page
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        res.redirect(`${frontendUrl}/login?verified=true`);
+
     } catch (err) {
         res.status(400).json({
             status: 'fail',

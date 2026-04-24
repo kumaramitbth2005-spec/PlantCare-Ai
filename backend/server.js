@@ -38,11 +38,11 @@ app.get('/', (req, res) => {
 // 3) DB CONNECTION
 const DB = process.env.MONGO_URI || process.env.DATABASE || 'mongodb://localhost:27017/plantcare';
 
-mongoose.set('strictQuery', true); // Disable mongoose buffering timeout issue
+mongoose.set('bufferCommands', false); // Disable mongoose buffering timeout issue
 
 mongoose
     .connect(DB, {
-        serverSelectionTimeoutMS: 10000, // 10 second timeout for server selection
+        serverSelectionTimeoutMS: 60000, // 60 second timeout for server selection (Render cold start)
     })
     .then(() => {
         console.log('DB connection successful!');
