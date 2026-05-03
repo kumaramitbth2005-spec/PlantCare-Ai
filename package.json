@@ -5,6 +5,7 @@
     "scripts": {
         "install:all": "npm install --prefix backend && npm install --prefix frontend",
         "build": "npm run build --prefix frontend",
+        "ng": "npm run build --prefix frontend",
         "dev": "concurrently -n \"front,back,browser\" -c \"cyan,magenta,blue\" \"npm run dev --prefix frontend -- -p 3000\" \"npm run dev --prefix backend\" \"timeout /t 5 && start http://localhost:3000\"",
         "fix-ports": "fix-ports.bat",
         "backend": "npm run dev --prefix backend",
