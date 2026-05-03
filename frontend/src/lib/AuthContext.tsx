@@ -128,9 +128,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, [user, loading, pathname, router]);
 
-    const login = async (email: string, password: string) => {
+    const login = async (identifier: string, password: string) => {
         try {
-            const res = await api.post('/auth/login', { email, password });
+            const res = await api.post('/auth/login', { email: identifier, password });
             if (res.data.status === 'success') {
                 const { token, data } = res.data;
                 setToken(token);
@@ -170,7 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (err.code === 'ECONNABORTED') {
                     throw new Error('Connection timed out. Server might be down or warming up.');
                 }
-                throw new Error(err.response?.data?.message || 'Registration failed');
+                throw new Error(err.response?.data?.message || 'Registration failed. Please check if your email or phone is already registered.');
             }
             throw new Error((err as Error).message || 'Registration failed');
         }

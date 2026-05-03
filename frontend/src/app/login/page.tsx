@@ -91,11 +91,11 @@ export default function LoginPage() {
                                     )}
                                 />
                                 <input
-                                    type="email"
+                                    type="text"
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="researcher@plantcare.ai"
+                                    placeholder="email@ai.com / 9876543210"
                                     className={cn(
                                         "w-full bg-slate-100/50 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl py-4",
                                         "pl-14 pr-6 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600",

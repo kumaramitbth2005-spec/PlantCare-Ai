@@ -29,14 +29,32 @@ const createSendToken = (user, statusCode, res) => {
 
 exports.register = async (req, res, next) => {
     try {
+        const { firstName, middleName, lastName, contactNumber, email, password, accountType } = req.body;
+
+        // 1) Check if user with this email or phone already exists
+        const existingUser = await User.findOne({
+            $or: [
+                { email: email },
+                { contactNumber: contactNumber }
+            ]
+        });
+
+        if (existingUser) {
+            const field = existingUser.email === email ? 'email' : 'phone number';
+            return res.status(400).json({
+                status: 'fail',
+                message: `A user with this ${field} already exists. Please use a different one or login.`
+            });
+        }
+
         const newUser = new User({
-            firstName: req.body.firstName,
-            middleName: req.body.middleName,
-            lastName: req.body.lastName,
-            contactNumber: req.body.contactNumber,
-            email: req.body.email,
-            password: req.body.password,
-            accountType: req.body.accountType
+            firstName,
+            middleName,
+            lastName,
+            contactNumber,
+            email,
+            password,
+            accountType
         });
 
         // Generate verification token
@@ -51,7 +69,7 @@ exports.register = async (req, res, next) => {
         const message = `Welcome to PlantCare AI!\n\nPlease verify your email address by clicking on the link below:\n\n${verifyUrl}\n\nThis link will expire in 24 hours.`;
 
         // FALLBACK: If dummy credentials are used, auto-verify and login
-        const isDummyEmail = !process.env.EMAIL_USERNAME || process.env.EMAIL_USERNAME.includes('your-email');
+        const isDummyEmail = !process.env.EMAIL_USERNAME || process.env.EMAIL_USERNAME.includes('your-email') || process.env.EMAIL_USERNAME === 'your-email@gmail.com';
         if (isDummyEmail) {
             newUser.isVerified = true;
             newUser.emailVerificationToken = undefined;
@@ -83,37 +101,43 @@ exports.register = async (req, res, next) => {
     } catch (err) {
         res.status(400).json({
             status: 'fail',
-            message: err.message
+            message: err.message || 'Registration failed. Please try again.'
         });
     }
 };
 
 exports.login = async (req, res, next) => {
     try {
-        const { email, password } = req.body;
+        const { email, password } = req.body; // email field now acts as identifier (email or phone)
 
-        // 1) Check if email and password exist
+        // 1) Check if email/identifier and password exist
         if (!email || !password) {
             return res.status(400).json({
                 status: 'fail',
-                message: 'Please provide email and password!'
+                message: 'Please provide email/phone and password!'
             });
         }
 
         // 2) Check if user exists && password is correct
-        const user = await User.findOne({ email }).select('+password');
+        // Search by email OR contactNumber
+        const user = await User.findOne({
+            $or: [
+                { email: email },
+                { contactNumber: email }
+            ]
+        }).select('+password');
 
         if (!user || !(await user.correctPassword(password, user.password))) {
             return res.status(401).json({
                 status: 'fail',
-                message: 'Incorrect email or password'
+                message: 'Incorrect email/phone or password'
             });
         }
 
         // 2.5) Check if user is verified
         if (!user.isVerified) {
             // FALLBACK: If dummy credentials are used, auto-verify for testing
-            const isDummyEmail = !process.env.EMAIL_USERNAME || process.env.EMAIL_USERNAME.includes('your-email');
+            const isDummyEmail = !process.env.EMAIL_USERNAME || process.env.EMAIL_USERNAME.includes('your-email') || process.env.EMAIL_USERNAME === 'your-email@gmail.com';
             if (isDummyEmail) {
                 user.isVerified = true;
                 await user.save({ validateBeforeSave: false });
@@ -131,7 +155,7 @@ exports.login = async (req, res, next) => {
     } catch (err) {
         res.status(400).json({
             status: 'fail',
-            message: err.message
+            message: err.message || 'Login failed. Please try again.'
         });
     }
 };
