@@ -178,12 +178,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const forgotPassword = async (contact: string) => {
         try {
-            await api.post('/auth/forgotPassword', { contact });
+            const res = await api.post('/auth/forgotPassword', { contact });
+            return res.data;
         } catch (err: unknown) {
             if (axios.isAxiosError(err)) {
-                throw new Error(err.response?.data?.message || 'Failed to send OTP');
+                // Return the specific error message from the backend if available
+                const backendMessage = err.response?.data?.message;
+                throw new Error(backendMessage || 'Failed to send OTP. Please check your connection.');
             }
-            throw new Error('Failed to send OTP');
+            throw new Error((err as Error).message || 'An unexpected error occurred while sending OTP.');
         }
     };
 

@@ -189,72 +189,80 @@ exports.getMe = async (req, res, next) => {
 };
 
 exports.forgotPassword = async (req, res, next) => {
-    // 1) Get user based on POSTed contact (email or phone)
-    const { contact } = req.body;
-    
-    if (!contact) {
-        return res.status(400).json({
-            status: 'fail',
-            message: 'Please provide your email or phone number.'
-        });
-    }
-
-    const user = await User.findOne({
-        $or: [
-            { email: contact },
-            { contactNumber: contact }
-        ]
-    });
-
-    if (!user) {
-        return res.status(404).json({
-            status: 'fail',
-            message: 'There is no user with that email address or phone number.'
-        });
-    }
-
-    // 2) Generate the random OTP (6 digits)
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    user.resetPasswordOtp = otp;
-    user.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
-    await user.save({ validateBeforeSave: false });
-
-    // 3) Send it to user's email 
-    // FALLBACK: If dummy credentials are used, skip sending email to prevent crash.
-    const isDummyEmail = !process.env.EMAIL_USERNAME || process.env.EMAIL_USERNAME.includes('your-email');
-    
-    if (isDummyEmail) {
-        // Skip nodemailer and just return success for testing/demo purposes
-        console.log(`[TESTING MODE] Dummy Email detected. OTP for ${user.email} is: ${otp}`);
-        return res.status(200).json({
-            status: 'success',
-            message: `OTP generated successfully! (Testing Mode: Check backend console for OTP: ${otp})`
-        });
-    }
-
-    const message = `Your password reset OTP is ${otp}. It is valid for 10 minutes.`;
-
     try {
-        await sendEmail({
-            email: user.email,
-            subject: 'Your password reset OTP (valid for 10 min)',
-            message
-        });
-
-        res.status(200).json({
-            status: 'success',
-            message: 'OTP sent to your registered email!'
-        });
-    } catch (err) {
-        user.resetPasswordOtp = undefined;
-        user.resetPasswordExpires = undefined;
-        await user.save({ validateBeforeSave: false });
+        // 1) Get user based on POSTed contact (email or phone)
+        const { contact } = req.body;
         
-        console.error("Email Error:", err);
+        if (!contact) {
+            return res.status(400).json({
+                status: 'fail',
+                message: 'Please provide your email or phone number.'
+            });
+        }
 
-        return res.status(500).json({
+        const user = await User.findOne({
+            $or: [
+                { email: contact },
+                { contactNumber: contact }
+            ]
+        });
+
+        if (!user) {
+            return res.status(404).json({
+                status: 'fail',
+                message: 'There is no user with that email address or phone number.'
+            });
+        }
+
+        // 2) Generate the random OTP (6 digits)
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        user.resetPasswordOtp = otp;
+        user.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+        await user.save({ validateBeforeSave: false });
+
+        // 3) Send it to user's email 
+        // FALLBACK: If dummy credentials are used, skip sending email to prevent crash.
+        const isDummyEmail = !process.env.EMAIL_USERNAME || process.env.EMAIL_USERNAME.includes('your-email') || process.env.EMAIL_USERNAME === 'your-email@gmail.com';
+        
+        if (isDummyEmail) {
+            // Skip nodemailer and just return success for testing/demo purposes
+            console.log(`[TESTING MODE] Dummy Email detected. OTP for ${user.email} is: ${otp}`);
+            return res.status(200).json({
+                status: 'success',
+                message: `OTP generated successfully! (Testing Mode: Check backend console or use OTP: ${otp})`,
+                otp: otp // Also sending in response for easier testing
+            });
+        }
+
+        const message = `Your password reset OTP is ${otp}. It is valid for 10 minutes.`;
+
+        try {
+            await sendEmail({
+                email: user.email,
+                subject: 'Your password reset OTP (valid for 10 min)',
+                message
+            });
+
+            res.status(200).json({
+                status: 'success',
+                message: 'OTP sent to your registered email!'
+            });
+        } catch (err) {
+            user.resetPasswordOtp = undefined;
+            user.resetPasswordExpires = undefined;
+            await user.save({ validateBeforeSave: false });
+            
+            console.error("Email Error:", err);
+
+            return res.status(500).json({
+                status: 'error',
+                message: 'There was an error sending the email. Try again later!'
+            });
+        }
+    } catch (err) {
+        res.status(500).json({
             status: 'error',
-            message: 'There was an error sending the email. Try again later!'
+            message: err.message || 'Something went wrong while sending OTP.'
         });
     }
 };
