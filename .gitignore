@@ -34,3 +34,11 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Project specific
+backend/uploads/
+backend/check_user.js
+backend/test_endpoint.js
+backend/test_register.js
+backend/test-flow.js
+backend/test_leaf.jpg
