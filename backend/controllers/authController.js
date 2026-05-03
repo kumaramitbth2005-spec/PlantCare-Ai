@@ -50,14 +50,16 @@ exports.register = async (req, res, next) => {
         // Send email
         const message = `Welcome to PlantCare AI!\n\nPlease verify your email address by clicking on the link below:\n\n${verifyUrl}\n\nThis link will expire in 24 hours.`;
 
-        // FALLBACK: If dummy credentials are used
+        // FALLBACK: If dummy credentials are used, auto-verify and login
         const isDummyEmail = !process.env.EMAIL_USERNAME || process.env.EMAIL_USERNAME.includes('your-email');
         if (isDummyEmail) {
-            console.log(`[TESTING MODE] Dummy Email detected. Verification URL for ${newUser.email} is: ${verifyUrl}`);
-            return res.status(201).json({
-                status: 'success',
-                message: 'User registered! (Testing Mode: Check backend console for verification link)'
-            });
+            newUser.isVerified = true;
+            newUser.emailVerificationToken = undefined;
+            newUser.emailVerificationExpires = undefined;
+            await newUser.save({ validateBeforeSave: false });
+            
+            console.log(`[TESTING MODE] Auto-verified user: ${newUser.email}`);
+            return createSendToken(newUser, 201, res);
         }
 
         try {
@@ -110,10 +112,18 @@ exports.login = async (req, res, next) => {
 
         // 2.5) Check if user is verified
         if (!user.isVerified) {
-            return res.status(401).json({
-                status: 'fail',
-                message: 'Please verify your email before logging in. Check your inbox for the verification link.'
-            });
+            // FALLBACK: If dummy credentials are used, auto-verify for testing
+            const isDummyEmail = !process.env.EMAIL_USERNAME || process.env.EMAIL_USERNAME.includes('your-email');
+            if (isDummyEmail) {
+                user.isVerified = true;
+                await user.save({ validateBeforeSave: false });
+                console.log(`[TESTING MODE] Auto-verified user during login: ${user.email}`);
+            } else {
+                return res.status(401).json({
+                    status: 'fail',
+                    message: 'Please verify your email before logging in. Check your inbox for the verification link.'
+                });
+            }
         }
 
         // 3) If everything ok, send token to client
@@ -315,7 +325,7 @@ exports.updateMe = async (req, res, next) => {
 
 const multerStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads/profiles');
+        cb(null, path.join(__dirname, '..', 'uploads', 'profiles'));
     },
     filename: (req, file, cb) => {
         // user-id-timestamp.jpeg

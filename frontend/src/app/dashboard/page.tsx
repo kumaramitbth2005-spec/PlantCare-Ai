@@ -113,37 +113,64 @@ export default function Dashboard() {
     const [fetchError, setFetchError] = useState<string | null>(null);
 
     useEffect(() => {
+        let isMounted = true;
+        
         const fetchDashboardData = async () => {
-            setFetchError(null);
             try {
+                setFetchError(null);
                 const [statsRes, historyRes] = await Promise.all([
                     api.get('/detection/stats'),
                     api.get('/detection/history')
                 ]);
 
+                if (!isMounted) return;
+
                 if (statsRes.data.status === 'success') {
                     setData(statsRes.data.data);
                 }
                 if (historyRes.data.status === 'success') {
-                    setHistory(historyRes.data.data.history.slice(0, 5));
+                    // Result structure might vary between backends, checking for history array
+                    const historyData = historyRes.data.data.history || historyRes.data.data || [];
+                    setHistory(Array.isArray(historyData) ? historyData.slice(0, 5) : []);
                 }
-            } catch (err) {
-                console.error("Dashboard Fetch Error:", err);
-                setFetchError("Unable to load live dashboard data. Check network connection.");
+            } catch (err: any) {
+                if (isMounted) {
+                    console.error("Dashboard Fetch Error:", err);
+                    if (err.response?.status === 401) {
+                        setFetchError("Session expired. Please log in again.");
+                    } else {
+                        setFetchError("Unable to load live dashboard data. Check network connection.");
+                    }
+                }
             } finally {
-                setIsLoading(false);
+                if (isMounted) {
+                    setIsLoading(false);
+                }
             }
         };
 
         if (user) {
             fetchDashboardData();
+        } else {
+            // If no user, we shouldn't be here, but let's clear loading anyway
+            const timer = setTimeout(() => {
+                if (isMounted) setIsLoading(false);
+            }, 3000);
+            return () => {
+                isMounted = false;
+                clearTimeout(timer);
+            };
         }
+
+        return () => {
+            isMounted = false;
+        };
     }, [user]);
 
     const statsConfig = [
-        { label: "Total Scans", value: data?.totalScans.toLocaleString() || "0", icon: Activity, color: "pink", trend: "+12%", trendUp: true },
-        { label: "Diseases Detected", value: data?.diseasedCount.toLocaleString() || "0", icon: AlertTriangle, color: "rose", trend: "+5%", trendUp: true },
-        { label: "Healthy Plants", value: data?.healthyCount.toLocaleString() || "0", icon: CheckCircle2, color: "fuchsia", trend: "-2%", trendUp: false },
+        { label: "Total Scans", value: (data?.totalScans ?? 0).toLocaleString(), icon: Activity, color: "pink", trend: "+12%", trendUp: true },
+        { label: "Diseases Detected", value: (data?.diseasedCount ?? 0).toLocaleString(), icon: AlertTriangle, color: "rose", trend: "+5%", trendUp: true },
+        { label: "Healthy Plants", value: (data?.healthyCount ?? 0).toLocaleString(), icon: CheckCircle2, color: "fuchsia", trend: "-2%", trendUp: false },
         { label: "Model Accuracy", value: "98.2%", icon: Zap, color: "pink", trend: "+0.4%", trendUp: true },
     ];
 

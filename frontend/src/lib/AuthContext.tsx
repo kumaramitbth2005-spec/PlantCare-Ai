@@ -106,7 +106,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     const res = await api.get('/auth/me');
                     if (res.data.status === 'success') {
                         setUser(res.data.data.user);
-                        localStorage.setItem('pc_user', JSON.stringify(res.data.data.user));
                     }
                 } catch (err) {
                     console.error("Token verification failed", err);

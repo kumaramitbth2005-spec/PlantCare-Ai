@@ -20,6 +20,7 @@ import {
     Sparkles,
     Search,
     Image as ImageIcon,
+    Music,
     Trash2
 } from "lucide-react";
 import NextImage from "next/image";
@@ -32,6 +33,7 @@ import { useTheme } from "@/lib/ThemeContext";
 import { Language } from "@/lib/translations";
 import { useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
+import api, { BASE_URL } from '@/lib/api';
 
 export default function ProfilePage() {
     return (
@@ -53,7 +55,7 @@ function ProfileContent() {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const searchParams = useSearchParams();
     type TabType = 'profile' | 'addresses' | 'reminders' | 'routine' | 'language' | 'privacy' | 'scannerSettings' | 'theme' | 'aboutDeveloper';
-    
+
     const [activeTab, setActiveTab] = useState<TabType>(
         (searchParams.get('tab') as TabType) || 'profile'
     );
@@ -134,17 +136,17 @@ function ProfileContent() {
     const [waterReminderOn, setWaterReminderOn] = useState(user?.plantReminders?.water?.enabled ?? true);
     const [waterFrequency, setWaterFrequency] = useState(user?.plantReminders?.water?.frequency ?? 2);
     const [lastWateredDate, setLastWateredDate] = useState<string>(
-        user?.plantReminders?.water?.lastTransmission 
-        ? new Date(user?.plantReminders?.water?.lastTransmission).toISOString().split('T')[0] 
-        : new Date().toISOString().split('T')[0]
+        user?.plantReminders?.water?.lastTransmission
+            ? new Date(user?.plantReminders?.water?.lastTransmission).toISOString().split('T')[0]
+            : new Date().toISOString().split('T')[0]
     );
 
     const [fertilizerReminderOn, setFertilizerReminderOn] = useState(user?.plantReminders?.fertilizer?.enabled ?? false);
     const [fertilizerFrequency, setFertilizerFrequency] = useState(user?.plantReminders?.fertilizer?.frequency ?? 'Monthly');
     const [nextFertilizerDate, setNextFertilizerDate] = useState<string>(
-        user?.plantReminders?.fertilizer?.nextProtocol 
-        ? new Date(user?.plantReminders?.fertilizer?.nextProtocol).toISOString().split('T')[0] 
-        : new Date().toISOString().split('T')[0]
+        user?.plantReminders?.fertilizer?.nextProtocol
+            ? new Date(user?.plantReminders?.fertilizer?.nextProtocol).toISOString().split('T')[0]
+            : new Date().toISOString().split('T')[0]
     );
 
     const [dailyRoutineContent, setDailyRoutineContent] = useState(user?.dailyRoutine ?? '');
@@ -550,27 +552,23 @@ function ProfileContent() {
                     try {
                         const response = await fetch(finalImage);
                         const blob = await response.blob();
-                        const localToken = localStorage.getItem('pc_token') || token; // Use correct 'pc_token' key
+                        const localToken = localStorage.getItem('pc_token') || token;
 
                         const formData = new FormData();
                         formData.append('profilePhoto', blob, 'profile.png');
 
-                        const apiResponse = await fetch(`http://${typeof window !== "undefined" ? window.location.hostname : "localhost"}:8000/api/users/uploadProfilePhoto`, {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `Bearer ${localToken}`
-                            },
-                            body: formData
-                        });
+                        const apiResponse = await api.post('/users/uploadProfilePhoto', formData);
 
-                        const data = await apiResponse.json();
+                        const data = apiResponse.data;
 
-                        if (!apiResponse.ok) {
+                        if (apiResponse.status !== 200 && data.status !== 'success') {
                             throw new Error(data.message || 'Failed to upload photo');
                         }
 
                         // Success scenario
-                        const newPhotoUrl = `http://${typeof window !== "undefined" ? window.location.hostname : "localhost"}:8000${data.data.fileUrl}`;
+                        const newPhotoUrl = data.data.fileUrl.startsWith('http')
+                            ? data.data.fileUrl
+                            : `${BASE_URL}${data.data.fileUrl}`;
                         setProfileImage(newPhotoUrl);
                         await updateProfile({ profilePhoto: newPhotoUrl }); // Synchronize auth context too
                         setEditImageFile(null);
@@ -604,16 +602,10 @@ function ProfileContent() {
         try {
             const localToken = localStorage.getItem('pc_token') || token;
 
-            const apiResponse = await fetch(`http://${typeof window !== "undefined" ? window.location.hostname : "localhost"}:8000/api/users/deleteProfilePhoto`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${localToken}`
-                }
-            });
+            const apiResponse = await api.delete('/users/deleteProfilePhoto');
+            const data = apiResponse.data;
 
-            const data = await apiResponse.json();
-
-            if (!apiResponse.ok) {
+            if (apiResponse.status !== 200 && data.status !== 'success') {
                 throw new Error(data.message || 'Failed to delete photo');
             }
 
@@ -1213,7 +1205,7 @@ function ProfileContent() {
                                                 <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Notification & Alarm Audio</p>
                                             </div>
                                         </div>
-                                        
+
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-4">
                                                 <div className="flex items-center justify-between">
@@ -1247,9 +1239,9 @@ function ProfileContent() {
                                                 </select>
                                                 {ringtoneSettings.selectedNotificationRingtone === "Custom" && (
                                                     <div className="mt-2">
-                                                        <input 
-                                                            type="file" 
-                                                            accept="audio/*" 
+                                                        <input
+                                                            type="file"
+                                                            accept="audio/*"
                                                             ref={notificationInputRef}
                                                             className="hidden"
                                                             onChange={(e) => {
@@ -1258,12 +1250,12 @@ function ProfileContent() {
                                                                     loadCustomAudioFromFile('notification', file).then(() => {
                                                                         playNotification("Custom");
                                                                     }).catch(() => {
-                                                                        addNotification({title: "Audio Error", description: "Failed to load custom audio.", type: "alert"})
+                                                                        addNotification({ title: "Audio Error", description: "Failed to load custom audio.", type: "alert" })
                                                                     });
                                                                 }
                                                             }}
                                                         />
-                                                        <button 
+                                                        <button
                                                             onClick={() => notificationInputRef.current?.click()}
                                                             className="w-full py-2 bg-pink-500/10 text-pink-500 hover:bg-pink-500/20 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
                                                         >
@@ -1295,20 +1287,24 @@ function ProfileContent() {
                                                         const newVal = e.target.value as AlarmPreset;
                                                         setRingtoneSettings(prev => ({ ...prev, selectedAlarmRingtone: newVal }));
                                                         stopAlarm(); // stop previous if playing
-                                                        setTimeout(() => playAlarm(newVal), 100);
+                                                        if (newVal === "Custom") {
+                                                            alarmInputRef.current?.click();
+                                                        } else {
+                                                            setTimeout(() => playAlarm(newVal), 100);
+                                                        }
                                                     }}
                                                     className="w-full bg-white/50 dark:bg-white/5 border border-slate-100 dark:border-white/10 rounded-xl p-3 text-xs font-bold focus:outline-none"
                                                 >
                                                     <option value="Classic Pulse">Classic Pulse</option>
                                                     <option value="Hydration Alert">Hydration Alert</option>
                                                     <option value="Bio-Rhythm">Bio-Rhythm</option>
-                                                    <option value="Custom">Custom Source</option>
+                                                    <option value="Custom">{customAlarmName ? `Custom: ${customAlarmName}` : "Choose Audio File..."}</option>
                                                 </select>
                                                 {ringtoneSettings.selectedAlarmRingtone === "Custom" && (
                                                     <div className="mt-2">
-                                                        <input 
-                                                            type="file" 
-                                                            accept="audio/*" 
+                                                        <input
+                                                            type="file"
+                                                            accept="audio/*"
                                                             ref={alarmInputRef}
                                                             className="hidden"
                                                             onChange={(e) => {
@@ -1318,16 +1314,17 @@ function ProfileContent() {
                                                                         stopAlarm();
                                                                         setTimeout(() => playAlarm("Custom"), 100);
                                                                     }).catch(() => {
-                                                                        addNotification({title: "Audio Error", description: "Failed to load custom alarm.", type: "alert"})
+                                                                        addNotification({ title: "Audio Error", description: "Failed to load custom alarm.", type: "alert" })
                                                                     });
                                                                 }
                                                             }}
                                                         />
-                                                        <button 
+                                                        <button
                                                             onClick={() => alarmInputRef.current?.click()}
-                                                            className="w-full py-2 bg-pink-500/10 text-pink-500 hover:bg-pink-500/20 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+                                                            className="w-full py-2 bg-pink-500/10 text-pink-500 hover:bg-pink-500/20 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
                                                         >
-                                                            {customAlarmName ? `Selected: ${customAlarmName}` : "Choose Audio File"}
+                                                            <Music className="w-3 h-3" />
+                                                            {customAlarmName ? `Change: ${customAlarmName}` : "Browse Files..."}
                                                         </button>
                                                     </div>
                                                 )}

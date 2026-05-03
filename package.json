@@ -3,12 +3,11 @@
     "version": "1.0.0",
     "description": "PlantCare AI - Complete SaaS Platform",
     "scripts": {
-        "install:all": "npm install --prefix backend && npm install --prefix frontend && cd ai_service && pip install -r requirements.txt",
-        "dev": "concurrently -n \"front,back,ai,browser\" -c \"cyan,magenta,yellow,blue\" \"npm run dev --prefix frontend -- -p 3000\" \"npm run dev --prefix backend\" \"cd ai_service && python app.py\" \"timeout /t 5 && start http://localhost:3000\"",
+        "install:all": "npm install --prefix backend && npm install --prefix frontend",
+        "dev": "concurrently -n \"front,back,browser\" -c \"cyan,magenta,blue\" \"npm run dev --prefix frontend -- -p 3000\" \"npm run dev --prefix backend\" \"timeout /t 5 && start http://localhost:3000\"",
         "fix-ports": "fix-ports.bat",
         "backend": "npm run dev --prefix backend",
         "frontend": "npm run dev --prefix frontend -- -p 3000",
-        "ai": "cd ai_service && python app.py",
         "lint": "npm run lint --prefix frontend"
     },
     "devDependencies": {

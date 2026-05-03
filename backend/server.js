@@ -14,10 +14,33 @@ const detectionRoutes = require('./routes/detectionRoutes');
 const app = express();
 
 // 1) GLOBAL MIDDLEWARES
+// Allow both localhost and 127.0.0.1 for maximum local compatibility
+const allowedOrigins = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    process.env.FRONTEND_URL
+].filter(Boolean);
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL || '*', // Allow frontend URL from env or anywhere for testing
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+        
+        const isLocal = origin.includes('localhost') || 
+                        origin.includes('127.0.0.1') || 
+                        origin.includes('192.168.') ||
+                        origin.includes('10.') ||
+                        origin.includes('172.');
+
+        if (allowedOrigins.indexOf(origin) !== -1 || isLocal) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -49,8 +72,8 @@ mongoose
         
         // 4) START SERVER
         const port = process.env.PORT || 8000;
-        app.listen(port, () => {
-            console.log(`App running on port ${port}...`);
+        app.listen(port, '0.0.0.0', () => {
+            console.log(`App running on port ${port} and listening on all interfaces (0.0.0.0)...`);
         });
     })
     .catch((err) => {

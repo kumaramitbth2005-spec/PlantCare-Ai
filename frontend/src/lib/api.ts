@@ -1,6 +1,16 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://plantcare-ai-1-vf3t.onrender.com/api';
+const getBaseUrl = () => {
+    if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        const apiHost = hostname === 'localhost' ? '127.0.0.1' : hostname;
+        return `http://${apiHost}:8000/api`;
+    }
+    return 'http://127.0.0.1:8000/api';
+};
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || getBaseUrl();
+export const BASE_URL = API_URL.replace('/api', '');
 
 const api = axios.create({
     baseURL: API_URL,
@@ -28,8 +38,14 @@ api.interceptors.response.use((response) => {
         if (error.code === 'ECONNABORTED') {
             console.error('API Request timed out after 60 seconds.');
         } else if (error.response?.status === 401) {
-            // Optional: Handle unauthorized access globally (e.g. clear tokens, but let components do redirect)
-            console.error('Unauthorized access. Token may be expired.');
+            console.warn('Unauthorized access. Token may be expired or invalid credentials.');
+            if (typeof window !== 'undefined') {
+                localStorage.removeItem('pc_token');
+                // Avoid infinite redirect loops
+                if (!window.location.pathname.includes('/login')) {
+                    window.location.href = '/login';
+                }
+            }
         }
     }
     return Promise.reject(error);

@@ -49,7 +49,7 @@ DISEASE_INFO = {
     },
     'Brinjal___Fruit_and_Shoot_Borer': {
         'name': 'Brinjal Fruit & Shoot Borer (Caterpillar/Pilu)',
-        'type': 'Pest/Insect',
+        'type': 'Pest',
         'description': 'Severe damage by pinkish caterpillars (pilu) that bore into shoots causing them to droop, and later bore into the eggplant fruits making them unfit for consumption.',
         'causes': 'Leucinodes orbonalis insect. Eggs laid on foliage hatch and caterpillars bore inside.',
         'treatment': 'Spray Neem Seed Kernel Extract (NSKE 5%) or Bacillus thuringiensis (Bt) base spray. Remove and destroy damaged shoots and fruits immediately. Do not use chemical fertilizers heavily; use well-rotted cow dung manure or Vermicompost mixed with Neem cake at the base.',

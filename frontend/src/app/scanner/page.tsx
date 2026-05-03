@@ -16,7 +16,7 @@ import {
     CameraOff
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
+import api from "@/lib/api";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
@@ -24,7 +24,6 @@ import { useNotifications } from "@/lib/NotificationContext";
 import { useSoundSystem, NotificationPreset } from "@/lib/useSoundSystem";
 import { useAuth } from "@/lib/AuthContext";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/detection/detect` : 'https://plantcare-ai-1-vf3t.onrender.com/api/detection/detect';
 
 export default function ScannerPage() {
     const { user } = useAuth();
@@ -181,24 +180,27 @@ export default function ScannerPage() {
             setTimeout(() => setScanStep("Cross-referencing neural data..."), 1600);
             playNotification((user?.ringtoneSettings?.selectedNotificationRingtone as NotificationPreset) || "Soft Pop");
 
-            const token = localStorage.getItem('pc_token');
-            const response = await axios.post(API_URL, formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                    "Authorization": `Bearer ${token}`
-                }
-            });
+            const apiResponse = await api.post('/detection/detect', formData);
 
-            if (response.data.status === 'success') {
-                const scanData = response.data.data.scan;
+            if (apiResponse.data.status === 'success') {
+                const scanData = apiResponse.data.data.scan;
                 setResult(scanData);
                 playNotification((user?.ringtoneSettings?.selectedNotificationRingtone as NotificationPreset) || "Neural Ping");
             } else {
-                setError(response.data.message || "Neural link failure. Check AI backend.");
+                setError(apiResponse.data.message || "Neural link failure. Check AI backend.");
             }
-        } catch (err: unknown) {
-            const error = err as { response?: { status?: number; data?: { message?: string } } };
-            console.error("Scan Error:", error);
+        } catch (err: any) {
+            const error = err;
+            console.error("--- SCAN FATAL ERROR ---");
+            console.error("Full Error Object:", error);
+            if (error.response) {
+                console.error("Response Data:", error.response.data);
+                console.error("Response Status:", error.response.status);
+            }
+            if (error.config) {
+                console.error("Failed URL:", error.config.url);
+                console.error("Headers:", error.config.headers);
+            }
             
             if (error.response?.status === 401) {
                 setError("Authentication required or session expired. Redirecting to login...");
