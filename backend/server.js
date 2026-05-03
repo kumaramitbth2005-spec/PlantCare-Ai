@@ -61,22 +61,23 @@ app.get('/', (req, res) => {
 // 3) DB CONNECTION
 const DB = process.env.MONGO_URI || process.env.DATABASE || 'mongodb://localhost:27017/plantcare';
 
-mongoose.set('bufferCommands', false); // Disable mongoose buffering timeout issue
+mongoose.set('bufferCommands', false); 
 
 mongoose
     .connect(DB, {
-        serverSelectionTimeoutMS: 60000, // 60 second timeout for server selection (Render cold start)
+        serverSelectionTimeoutMS: 60000, 
     })
     .then(() => {
         console.log('DB connection successful!');
-        
-        // 4) START SERVER
-        const port = process.env.PORT || 8000;
-        app.listen(port, '0.0.0.0', () => {
-            console.log(`App running on port ${port} and listening on all interfaces (0.0.0.0)...`);
-        });
     })
     .catch((err) => {
         console.error('DB connection error:', err);
-        process.exit(1); // Exit process if DB connection fails
+        // Don't exit process here on Render, let the app keep running and try to reconnect
+        // or at least let the health check pass if the DB is just slow
     });
+
+// 4) START SERVER
+const port = process.env.PORT || 8000;
+app.listen(port, '0.0.0.0', () => {
+    console.log(`App running on port ${port} and listening on all interfaces (0.0.0.0)...`);
+});
