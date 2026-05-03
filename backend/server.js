@@ -59,21 +59,31 @@ app.get('/', (req, res) => {
 });
 
 // 3) DB CONNECTION
-const DB = process.env.MONGO_URI || process.env.DATABASE || 'mongodb://localhost:27017/plantcare';
+const MONGO_URI = process.env.MONGO_URI || process.env.DATABASE;
+
+// Check if we're on a production environment like Render but missing the URI
+if (!MONGO_URI && (process.env.RENDER || process.env.NODE_ENV === 'production')) {
+    console.warn('⚠️ WARNING: No MONGO_URI found in environment variables! Localhost will NOT work on Render.');
+}
+
+const DB = MONGO_URI || 'mongodb://127.0.0.1:27017/plantcare';
 
 mongoose.set('bufferCommands', false); 
+
+console.log(`Attempting to connect to database: ${DB.split('@').pop()}...`); // Log only the host part for security
 
 mongoose
     .connect(DB, {
         serverSelectionTimeoutMS: 60000, 
     })
     .then(() => {
-        console.log('DB connection successful!');
+        console.log('✅ DB connection successful!');
     })
     .catch((err) => {
-        console.error('DB connection error:', err);
-        // Don't exit process here on Render, let the app keep running and try to reconnect
-        // or at least let the health check pass if the DB is just slow
+        console.error('❌ DB connection error:', err.message);
+        if (DB.includes('localhost') || DB.includes('127.0.0.1')) {
+            console.error('👉 TIP: You are trying to connect to a local MongoDB. On Render, you MUST set the MONGO_URI environment variable to a remote MongoDB Atlas connection string.');
+        }
     });
 
 // 4) START SERVER
