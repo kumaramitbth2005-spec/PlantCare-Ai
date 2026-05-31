@@ -3,10 +3,18 @@ import axios from 'axios';
 const getBaseUrl = () => {
     if (typeof window !== 'undefined') {
         const hostname = window.location.hostname;
-        const apiHost = hostname === 'localhost' ? '127.0.0.1' : hostname;
-        return `http://${apiHost}:8000/api`;
+        const isLocal = hostname === 'localhost' || 
+                         hostname === '127.0.0.1' || 
+                         hostname.startsWith('192.168.') ||
+                         hostname.startsWith('10.') ||
+                         hostname.startsWith('172.');
+        
+        if (isLocal) {
+            return 'http://127.0.0.1:8000/api';
+        }
+        return 'https://plant-care-ai.onrender.com/api';
     }
-    return 'http://127.0.0.1:8000/api';
+    return 'https://plant-care-ai.onrender.com/api';
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || getBaseUrl();
