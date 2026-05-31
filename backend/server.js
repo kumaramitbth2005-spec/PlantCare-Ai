@@ -45,6 +45,19 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
 app.use(express.json());
+
+// Ensure upload directories exist on startup (Render/production environment)
+const uploadDirs = [
+    path.join(__dirname, 'uploads'),
+    path.join(__dirname, 'uploads', 'profiles')
+];
+uploadDirs.forEach(dir => {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+        console.log(`Created directory: ${dir}`);
+    }
+});
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // 2) ROUTES
