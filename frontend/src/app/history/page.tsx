@@ -56,8 +56,10 @@ export default function HistoryPage() {
                 if (res.data.status === 'success') {
                     setRecords(res.data.data.history);
                 }
-            } catch (err: any) {
-                console.error("Error fetching history:", err.response?.data || err.message);
+            } catch (err: unknown) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const error = err as any;
+                console.error("Error fetching history:", error.response?.data || error.message);
             } finally {
                 setIsLoading(false);
             }

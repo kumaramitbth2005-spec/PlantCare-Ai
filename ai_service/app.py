@@ -18,22 +18,30 @@ from utils.llm_helper import generate_ai_insights
 app = Flask(__name__)
 CORS(app)
 
-# Attempt to load the new advanced Dual-Model Pipeline
+# Attempt to load the new advanced Gemini Pipeline
 try:
-    from src.pipeline import pipeline
+    from src.gemini_pipeline import gemini_pipeline
     PIPELINE_READY = True
-    print("Dual-Model Pipeline initialized successfully.")
+    print("Gemini Vision Pipeline initialized successfully.")
 except ImportError as e:
     PIPELINE_READY = False
-    print(f"Failed to load Dual-Model Pipeline (Torch/Torchvision may be missing). Error: {e}")
+    print(f"Failed to load Gemini Pipeline. Error: {e}")
     print("Running in DEMO / FALLBACK mode.")
+
+# Attempt to load the Local Vision Pipeline
+try:
+    from src.local_vision_pipeline import local_vision_pipeline
+    LOCAL_VISION_READY = True
+except ImportError as e:
+    LOCAL_VISION_READY = False
+    print(f"Failed to load Local Vision Pipeline. Error: {e}")
 
 @app.route('/', methods=['GET'])
 @app.route('/health', methods=['GET'])
 def health_check():
     return jsonify({
         'status': 'healthy',
-        'service': 'PlantCare Advanced AI Pipeline',
+        'service': 'PlantCare Advanced AI Pipeline (Gemini)',
         'pipeline_ready': PIPELINE_READY,
         'timestamp': time.time()
     })
@@ -54,21 +62,44 @@ def predict():
         if image.mode != "RGB":
             image = image.convert("RGB")
 
-        # Fallback random values if pipeline isn't installed
-        is_demo = not PIPELINE_READY
-        
         if PIPELINE_READY:
-            # Route image through the Dual-Model + Fallback Architectural Logic
-            pipeline_result = pipeline.analyze(image)
+            # 1. Run local model first (if ready and trained)
+            predicted_disease = None
+            if LOCAL_VISION_READY:
+                local_pred = local_vision_pipeline.predict(image)
+                if local_pred != "Model not trained yet":
+                    predicted_disease = local_pred
+                    print(f"Local Model Predicted: {predicted_disease}")
+
+            # 2. Route image and local prediction through the Gemini Vision AI
+            pipeline_result = gemini_pipeline.analyze(image, predicted_disease=predicted_disease)
             
-            plant_name = pipeline_result["plant"]
-            disease_name = pipeline_result["disease"]
-            confidence = pipeline_result["confidence"]
-            ai_insights = pipeline_result.get("ai_insights")
-            
-            predicted_class = f"{plant_name}___{disease_name}".replace(" ", "_")
+            plant_name = pipeline_result.get("plant", "Unknown")
+            disease_name = pipeline_result.get("disease", "Unknown")
+            confidence = pipeline_result.get("confidence", 95)
+            # Ensure confidence is a percentage
+            if confidence <= 1.0:
+                confidence = confidence * 100
+                
+            response = {
+                'success': True,
+                'prediction': {
+                    'plant': plant_name,
+                    'disease': disease_name,
+                    'confidence': round(float(confidence), 2),
+                    'type': pipeline_result.get('type', 'Unknown'),
+                    'description': pipeline_result.get('description', ''),
+                    'causes': pipeline_result.get('cause', 'Diagnosed by Gemini AI Engine.'),
+                    'treatment': pipeline_result.get('treatment', ''),
+                    'prevention': pipeline_result.get('treatment', ''),
+                    'ai_insights': pipeline_result.get('ai_insights', ''),
+                    'is_demo': pipeline_result.get('is_demo', False)
+                }
+            }
+            return jsonify(response)
         else:
-            # Simulate processing time for demo
+            # Fallback random values if pipeline isn't installed
+            is_demo = True
             time.sleep(0.5)
             # Pick a random class for demo purposes
             class_idx = np.random.randint(0, len(CLASS_NAMES))
@@ -80,25 +111,25 @@ def predict():
             disease_name = parts[1].replace('_', ' ') if len(parts) > 1 else "Healthy"
             ai_insights = generate_ai_insights(plant_name, disease_name)
 
-        # Look up existing local disease database
-        info = get_disease_info(predicted_class)
+            # Look up existing local disease database
+            info = get_disease_info(predicted_class)
 
-        response = {
-            'success': True,
-            'prediction': {
-                'plant': plant_name,
-                'disease': disease_name,
-                'confidence': round(confidence * 100, 2),
-                'type': info.get('type', 'Unknown'),
-                'description': info.get('description', ''),
-                'causes': info.get('causes', ''),
-                'treatment': info.get('treatment', ''),
-                'prevention': info.get('prevention', ''),
-                'ai_insights': ai_insights,
-                'is_demo': is_demo
+            response = {
+                'success': True,
+                'prediction': {
+                    'plant': plant_name,
+                    'disease': disease_name,
+                    'confidence': round(confidence * 100, 2),
+                    'type': info.get('type', 'Unknown'),
+                    'description': info.get('description', ''),
+                    'causes': info.get('causes', ''),
+                    'treatment': info.get('treatment', ''),
+                    'prevention': info.get('prevention', ''),
+                    'ai_insights': ai_insights,
+                    'is_demo': is_demo
+                }
             }
-        }
-        return jsonify(response)
+            return jsonify(response)
 
     except Exception as e:
         print(f"Prediction error: {e}")

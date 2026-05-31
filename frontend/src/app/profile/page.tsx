@@ -46,7 +46,7 @@ export default function ProfilePage() {
 function ProfileContent() {
     const { t, language, setLanguage } = useLanguage();
     const { addNotification } = useNotifications();
-    const { user, logout, updateProfile, token } = useAuth();
+    const { user, logout, updateProfile } = useAuth();
     const { playNotification, playAlarm, stopAlarm, loadCustomAudioFromFile, customNotificationName, customAlarmName } = useSoundSystem();
     const { theme, setTheme } = useTheme();
     const [isSyncing, setIsSyncing] = useState(false);
@@ -552,7 +552,6 @@ function ProfileContent() {
                     try {
                         const response = await fetch(finalImage);
                         const blob = await response.blob();
-                        const localToken = localStorage.getItem('pc_token') || token;
 
                         const formData = new FormData();
                         formData.append('profilePhoto', blob, 'profile.png');
@@ -600,7 +599,6 @@ function ProfileContent() {
     const handleDeletePhoto = async () => {
         setIsDeleting(true);
         try {
-            const localToken = localStorage.getItem('pc_token') || token;
 
             const apiResponse = await api.delete('/users/deleteProfilePhoto');
             const data = apiResponse.data;

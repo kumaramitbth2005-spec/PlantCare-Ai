@@ -16,6 +16,7 @@ services:
       - ./ai_service/models:/app/models
     environment:
       - MODEL_PATH=/app/models/plantcare_mobilenetv2.h5
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
 
   backend:
     build: ./backend

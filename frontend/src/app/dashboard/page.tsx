@@ -133,10 +133,12 @@ export default function Dashboard() {
                     const historyData = historyRes.data.data.history || historyRes.data.data || [];
                     setHistory(Array.isArray(historyData) ? historyData.slice(0, 5) : []);
                 }
-            } catch (err: any) {
+            } catch (err: unknown) {
                 if (isMounted) {
                     console.error("Dashboard Fetch Error:", err);
-                    if (err.response?.status === 401) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const error = err as any;
+                    if (error.response?.status === 401) {
                         setFetchError("Session expired. Please log in again.");
                     } else {
                         setFetchError("Unable to load live dashboard data. Check network connection.");

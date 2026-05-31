@@ -5,6 +5,8 @@ const User = require('../models/User');
 
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:5000/predict';
 
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+
 exports.detect = async (req, res) => {
     try {
         if (!req.file) {
@@ -12,29 +14,76 @@ exports.detect = async (req, res) => {
         }
 
         let prediction;
+        const apiKey = process.env.GEMINI_API_KEY;
 
-        // Use built-in high-performance diagnostic engine (removing external Python dependency as requested)
-        console.log('Using built-in diagnostic engine for scan...');
+        if (!apiKey) {
+            console.log('No GEMINI_API_KEY found, falling back to demo engine...');
+            const demoClasses = [
+                { plant: "Tomato", disease: "Late Blight", type: "Fungal", water: "1 liter every 3 days", fertilizer: "Use a balanced 10-10-10 NPK.", information: "Late blight is devastating. Apply fungicides like chlorothalonil." },
+                { plant: "Monstera", disease: "Healthy", type: "Healthy", water: "500ml once a week", fertilizer: "Use liquid nitrogen-rich fertilizer monthly.", information: "The plant is perfectly healthy. Continue current care regime." }
+            ];
+            const randomClass = demoClasses[Math.floor(Math.random() * demoClasses.length)];
 
-        const demoClasses = [
-            { plant: "Tomato", disease: "Late Blight", type: "Fungal", description: "Late blight is a potentially devastating disease of tomato, infecting leaves, stems, and fruits.", treatment: "Apply fungicides like chlorothalonil or copper-based sprays immediately.", prevention: "Avoid overhead watering and ensure good air circulation." },
-            { plant: "Apple", disease: "Apple Scab", type: "Fungal", description: "Apple scab causes lesions on leaves and fruit, reducing fruit quality.", treatment: "Fungicide application during the early growing season.", prevention: "Plant resistant varieties and clean up fallen leaves." },
-            { plant: "Potato", disease: "Early Blight", type: "Fungal", description: "Early blight causes dark, concentric rings on older leaves.", treatment: "Use protectant fungicides regularly.", prevention: "Implement crop rotation and remove infected plant debris." },
-            { plant: "Monstera", disease: "Healthy", type: "Healthy", description: "The plant shows no visible signs of disease or pests. Chlorophyll levels appear optimal.", treatment: "None needed. Continue current care regime.", prevention: "Maintain consistent watering and indirect light exposure." }
-        ];
-        const randomClass = demoClasses[Math.floor(Math.random() * demoClasses.length)];
+            prediction = {
+                plant: randomClass.plant,
+                disease: randomClass.disease,
+                confidence: parseFloat((Math.random() * (99.9 - 85.0) + 85.0).toFixed(2)),
+                type: randomClass.type,
+                water: randomClass.water,
+                fertilizer: randomClass.fertilizer,
+                information: randomClass.information,
+                is_demo: true
+            };
+        } else {
+            console.log('Using Gemini Vision AI for scan...');
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-        prediction = {
-            plant: randomClass.plant,
-            disease: randomClass.disease,
-            confidence: parseFloat((Math.random() * (99.9 - 85.0) + 85.0).toFixed(2)),
-            type: randomClass.type,
-            description: randomClass.description,
-            treatment: randomClass.treatment,
-            prevention: randomClass.prevention,
-            ai_insights: "Botanic Insight: Ensure proper drainage and avoid over-saturation of the soil. Monitor nitrogen levels in the root zone for optimal leaf development.",
-            is_demo: true
-        };
+            const imagePath = req.file.path;
+            const imageData = fs.readFileSync(imagePath);
+            const imageBase64 = imageData.toString('base64');
+            const mimeType = req.file.mimetype || 'image/jpeg';
+
+            const prompt = `
+            You are a highly skilled agronomist and plant pathologist.
+            Analyze this plant image carefully.
+            Identify the plant species, the disease (or state if it is Healthy), and provide precise treatment.
+            
+            Return ONLY a JSON object with EXACTLY these keys:
+            {
+                "plant": "Common name of the plant",
+                "disease": "Specific disease name or 'Healthy'",
+                "confidence": 95, 
+                "type": "Virus/Bacterial/Fungal/Pest/Unknown/Healthy",
+                "water": "Exactly how much water to put (e.g., '500ml twice a week')",
+                "fertilizer": "Exactly which fertilizer to use (e.g., 'Use balanced 10-10-10 NPK')",
+                "information": "How often to apply fertilizer, plus a very short 1-2 sentence description of the disease or care instructions."
+            }
+            Do not include Markdown formatting blocks like \`\`\`json. Return raw JSON string only.
+            `;
+
+            const result = await model.generateContent([
+                prompt,
+                { inlineData: { data: imageBase64, mimeType } }
+            ]);
+
+            let responseText = result.response.text().trim();
+            if (responseText.startsWith('\`\`\`json')) responseText = responseText.replace(/^\`\`\`json/, '');
+            if (responseText.endsWith('\`\`\`')) responseText = responseText.replace(/\`\`\`$/, '');
+            
+            const aiData = JSON.parse(responseText.trim());
+
+            prediction = {
+                plant: aiData.plant || 'Unknown Plant',
+                disease: aiData.disease || 'Unknown State',
+                confidence: parseFloat(aiData.confidence || 95.0),
+                type: aiData.type || 'Unknown',
+                water: aiData.water || 'Consult expert',
+                fertilizer: aiData.fertilizer || 'Consult expert',
+                information: aiData.information || 'No information available.',
+                is_demo: false
+            };
+        }
 
         // 3) Save to database history
         const newScan = await Scan.create({
@@ -44,10 +93,9 @@ exports.detect = async (req, res) => {
             disease: prediction.disease || 'Unknown State',
             confidence: prediction.confidence || 0,
             type: ['Bacterial', 'Fungal', 'Virus', 'Healthy', 'Pest', 'Unknown'].includes(prediction.type) ? prediction.type : 'Unknown',
-            description: prediction.description || 'No description available.',
-            treatment: prediction.treatment || 'No specific treatment recommended.',
-            prevention: prediction.prevention || 'Maintain general plant hygiene.',
-            ai_insights: prediction.ai_insights || ''
+            water: prediction.water || '',
+            fertilizer: prediction.fertilizer || '',
+            information: prediction.information || ''
         });
 
         // 4) Update user stats

@@ -31,6 +31,9 @@ const scanSchema = new mongoose.Schema({
     treatment: String,
     prevention: String,
     ai_insights: String,
+    water: String,
+    fertilizer: String,
+    information: String,
     createdAt: {
         type: Date,
         default: Date.now

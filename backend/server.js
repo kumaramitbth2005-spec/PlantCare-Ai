@@ -32,7 +32,9 @@ app.use(cors({
                         origin.includes('10.') ||
                         origin.includes('172.');
 
-        if (allowedOrigins.indexOf(origin) !== -1 || isLocal) {
+        const isVercel = origin.endsWith('.vercel.app') || origin.includes('vercel.app');
+
+        if (allowedOrigins.indexOf(origin) !== -1 || isLocal || isVercel) {
             callback(null, true);
         } else {
             callback(new Error('Not allowed by CORS'));

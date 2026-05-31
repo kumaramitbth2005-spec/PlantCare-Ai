@@ -10,17 +10,18 @@ import {
     Loader2,
     Search,
     Zap,
-    Sparkles,
     Video,
     FlipHorizontal,
-    CameraOff
+    CameraOff,
+    Droplets,
+    Leaf,
+    Info
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "@/lib/api";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import { useNotifications } from "@/lib/NotificationContext";
 import { useSoundSystem, NotificationPreset } from "@/lib/useSoundSystem";
 import { useAuth } from "@/lib/AuthContext";
 
@@ -36,9 +37,9 @@ export default function ScannerPage() {
         disease: string;
         confidence: number;
         type: string;
-        description: string;
-        treatment: string;
-        ai_insights?: string;
+        water?: string;
+        fertilizer?: string;
+        information?: string;
         is_demo?: boolean;
     } | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -62,7 +63,6 @@ export default function ScannerPage() {
     }, [cameraStream]);
 
     const router = useRouter();
-    const { addNotification } = useNotifications();
     const { playNotification } = useSoundSystem();
 
     const stopCamera = useCallback(() => {
@@ -189,8 +189,9 @@ export default function ScannerPage() {
             } else {
                 setError(apiResponse.data.message || "Neural link failure. Check AI backend.");
             }
-        } catch (err: any) {
-            const error = err;
+        } catch (err: unknown) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const error = err as any;
             console.error("--- SCAN FATAL ERROR ---");
             console.error("Full Error Object:", error);
             if (error.response) {
@@ -216,16 +217,6 @@ export default function ScannerPage() {
         }
     };
 
-    const handleOrder = () => {
-        addNotification({
-            title: "Order Initiated",
-            description: "The recommended treatment has been added to your transmission logs.",
-            type: "info"
-        });
-        setTimeout(() => {
-            router.push('/profile?tab=orders');
-        }, 1500);
-    };
 
     const clear = () => {
         setFile(null);
@@ -614,71 +605,74 @@ export default function ScannerPage() {
                                         </div>
                                     </div>
 
-                                    <div className={cn(
-                                        "bg-slate-900/5 dark:bg-pink-500/5 p-6 rounded-[2rem]",
-                                        "border border-slate-100 dark:border-pink-500/10 relative overflow-hidden"
-                                    )}>
-                                        <div className="absolute top-0 right-0 p-4 opacity-5">
-                                            <Sparkles className="w-16 h-16" />
-                                        </div>
-                                        <h4 className="flex items-center gap-2 text-[10px] font-black text-slate-900 dark:text-pink-300 mb-4 uppercase tracking-[0.2em]">
-                                            Bio-Analytical Intelligence
-                                        </h4>
-                                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-bold">
-                                            {result.description}
-                                        </p>
-                                    </div>
-
-                                    {result.treatment && (
+                                    {result.disease.toLowerCase() === 'healthy' ? (
                                         <div className={cn(
-                                            "p-8 bg-gradient-to-br from-pink-600 to-rose-700",
-                                            "text-white rounded-[2.5rem] shadow-2xl relative",
-                                            "overflow-hidden group/order"
+                                            "bg-emerald-900/5 dark:bg-emerald-500/10 p-6 rounded-[2rem] mt-6",
+                                            "border border-emerald-100 dark:border-emerald-500/20 relative overflow-hidden"
                                         )}>
-                                            <div className={cn(
-                                                "absolute top-0 right-0 p-6 opacity-20",
-                                                "group-hover/order:scale-125 transition-transform duration-700"
-                                            )}>
-                                                <CheckCircle2 className="w-20 h-20" />
+                                            <div className="absolute top-0 right-0 p-4 opacity-10 text-emerald-500">
+                                                <CheckCircle2 className="w-16 h-16" />
                                             </div>
-                                            <h4 className="text-[10px] font-black text-pink-200 uppercase tracking-[0.3em] mb-4">
-                                                RECOVERY PROTOCOL
+                                            <h4 className="flex items-center gap-2 text-[10px] font-black text-emerald-900 dark:text-emerald-400 mb-4 uppercase tracking-[0.2em]">
+                                                Plant Status
                                             </h4>
-                                            <p className="text-base leading-relaxed font-black italic tracking-tight mb-6">
-                                                &quot;{result.treatment}&quot;
+                                            <p className="text-lg text-emerald-700 dark:text-emerald-300 leading-relaxed font-black">
+                                                Your plant is perfectly healthy! {result.information && <span className="block mt-2 text-sm font-medium opacity-80">{result.information}</span>}
                                             </p>
-                                            <button
-                                                onClick={handleOrder}
-                                                className={cn(
-                                                    "w-full py-4 bg-white text-pink-600 rounded-2xl",
-                                                    "font-black text-xs uppercase tracking-widest shadow-xl",
-                                                    "flex items-center justify-center gap-3 hover:bg-pink-50",
-                                                    "transition-all active:scale-95"
-                                                )}
-                                            >
-                                                <Zap className="w-4 h-4" />
-                                                Direct Purchase & Deploy
-                                            </button>
                                         </div>
-                                    )}
+                                    ) : (
+                                        <>
+                                            {result.water && (
+                                                <div className={cn(
+                                                    "bg-blue-900/5 dark:bg-blue-500/10 p-6 rounded-[2rem] mt-6",
+                                                    "border border-blue-100 dark:border-blue-500/20 relative overflow-hidden"
+                                                )}>
+                                                    <div className="absolute top-0 right-0 p-4 opacity-10 text-blue-500">
+                                                        <Droplets className="w-16 h-16" />
+                                                    </div>
+                                                    <h4 className="flex items-center gap-2 text-[10px] font-black text-blue-900 dark:text-blue-400 mb-4 uppercase tracking-[0.2em]">
+                                                        Water Requirements
+                                                    </h4>
+                                                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-bold">
+                                                        {result.water}
+                                                    </p>
+                                                </div>
+                                            )}
 
-                                    {result.ai_insights && (
-                                        <div className={cn(
-                                            "bg-indigo-900/5 dark:bg-indigo-500/10 p-6 rounded-[2rem]",
-                                            "border border-indigo-100 dark:border-indigo-500/20 relative overflow-hidden mt-6"
-                                        )}>
-                                            <div className="absolute top-0 right-0 p-4 opacity-10 text-indigo-500">
-                                                <Sparkles className="w-16 h-16" />
-                                            </div>
-                                            <h4 className="flex items-center gap-2 text-[10px] font-black text-indigo-900 dark:text-indigo-400 mb-4 uppercase tracking-[0.2em]">
-                                                <Zap className="w-3 h-3" /> Core AI Diagnostic & Recovery Insights
-                                            </h4>
-                                            <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium space-y-4">
-                                                {result.ai_insights.split('\n').map((line, idx) => (
-                                                    <p key={idx}>{line}</p>
-                                                ))}
-                                            </div>
-                                        </div>
+                                            {result.fertilizer && (
+                                                <div className={cn(
+                                                    "mt-6 bg-amber-900/5 dark:bg-amber-500/10 p-6 rounded-[2rem]",
+                                                    "border border-amber-100 dark:border-amber-500/20 relative overflow-hidden"
+                                                )}>
+                                                    <div className="absolute top-0 right-0 p-4 opacity-10 text-amber-500">
+                                                        <Leaf className="w-16 h-16" />
+                                                    </div>
+                                                    <h4 className="flex items-center gap-2 text-[10px] font-black text-amber-900 dark:text-amber-400 mb-4 uppercase tracking-[0.2em]">
+                                                        Fertilization Guide
+                                                    </h4>
+                                                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-bold">
+                                                        {result.fertilizer}
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            {result.information && (
+                                                <div className={cn(
+                                                    "mt-6 bg-slate-900/5 dark:bg-slate-500/10 p-6 rounded-[2rem]",
+                                                    "border border-slate-200 dark:border-slate-500/20 relative overflow-hidden"
+                                                )}>
+                                                    <div className="absolute top-0 right-0 p-4 opacity-10 text-slate-500">
+                                                        <Info className="w-16 h-16" />
+                                                    </div>
+                                                    <h4 className="flex items-center gap-2 text-[10px] font-black text-slate-900 dark:text-slate-400 mb-4 uppercase tracking-[0.2em]">
+                                                        Treatment & Info
+                                                    </h4>
+                                                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+                                                        {result.information}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </>
                                     )}
                                 </div>
 
