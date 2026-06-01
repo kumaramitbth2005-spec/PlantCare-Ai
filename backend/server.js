@@ -1,5 +1,4 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
@@ -75,34 +74,8 @@ app.get('/', (req, res) => {
 });
 
 // 3) DB CONNECTION
-const DB = process.env.MONGO_URI || process.env.DATABASE || 'mongodb://127.0.0.1:27017/plantcare';
-
-mongoose.set('bufferCommands', false); 
-
-// Connection Event Listeners for logs
-mongoose.connection.on('connecting', () => {
-    console.log('⌛ Connecting to MongoDB...');
-});
-mongoose.connection.on('connected', () => {
-    console.log('✅ Mongoose default connection open to DB');
-});
-mongoose.connection.on('error', (err) => {
-    console.error('❌ Mongoose default connection error: ' + err.message);
-});
-mongoose.connection.on('disconnected', () => {
-    console.log('⚠️ Mongoose default connection disconnected');
-});
-
-mongoose
-    .connect(DB, {
-        serverSelectionTimeoutMS: 60000, 
-    })
-    .then(() => {
-        console.log('✅ DB connection initialized successfully!');
-    })
-    .catch((err) => {
-        console.error('❌ DB connection error:', err.message);
-    });
+console.log('⌛ Connecting to JSON Database...');
+console.log('✅ DB connection initialized successfully (JSON-DB File Store)!');
 
 // 4) START SERVER
 const port = process.env.PORT || 8000;

@@ -42,3 +42,6 @@ backend/test_endpoint.js
 backend/test_register.js
 backend/test-flow.js
 backend/test_leaf.jpg
+
+# Database storage
+backend/data/
