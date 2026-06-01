@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import {
     LayoutDashboard,
     Scan,
@@ -23,7 +23,8 @@ import {
     Sliders,
     MapPin,
     Bell,
-    X
+    X,
+    ArrowLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -37,6 +38,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
     const { addNotification } = useNotifications();
     const pathname = usePathname();
     const searchParams = useSearchParams();
+    const router = useRouter();
 
     const triggerUpdate = () => {
         addNotification({
@@ -89,9 +91,18 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
 
                 {/* Logo Area - STICKY at top */}
                 <div className={cn(
-                    "flex items-center gap-3 px-9 py-8 mobile-xs:py-10 xl:py-6", // Increased padding on mobile
-                    "sticky top-0 z-10 bg-white dark:bg-slate-900 xl:bg-card"
+                    "flex items-center gap-3 px-6 py-8 mobile-xs:py-10 xl:py-6", // Adjusted padding to fit back button
+                    "sticky top-0 z-10 bg-white dark:bg-slate-900 xl:bg-card border-b border-slate-50 dark:border-pink-500/5 xl:border-none"
                 )}>
+                    {/* Back Button */}
+                    <button
+                        onClick={() => router.back()}
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-500 hover:text-pink-500 rounded-xl transition-all cursor-pointer mr-1 shrink-0 flex items-center justify-center border border-slate-100 dark:border-white/5 shadow-sm"
+                        title="Go Back"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                    </button>
+
                     <div className={cn(
                         "bg-gradient-to-br from-pink-500 to-rose-600",
                         "p-2.5 rounded-2xl shadow-xl shadow-pink-500/20"
@@ -99,11 +110,11 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
                         <Zap className="w-7 h-7 text-white fill-white/10" />
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-2xl font-black tracking-tighter leading-none text-foreground">
+                        <span className="text-xl font-black tracking-tighter leading-none text-foreground">
                             PlantCare
                         </span>
                         <span className={cn(
-                            "text-[10px] font-black tracking-[0.4em]",
+                            "text-[9px] font-black tracking-[0.4em]",
                             "uppercase text-pink-400 mt-1"
                         )}>
                             AI Systems
