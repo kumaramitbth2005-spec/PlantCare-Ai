@@ -12,9 +12,9 @@ const getBaseUrl = () => {
         if (isLocal) {
             return 'http://127.0.0.1:8000/api';
         }
-        return 'https://plant-care-ai.onrender.com/api';
+        return 'https://plantcare-ai-jcua.onrender.com/api';
     }
-    return 'https://plant-care-ai.onrender.com/api';
+    return 'https://plantcare-ai-jcua.onrender.com/api';
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || getBaseUrl();
