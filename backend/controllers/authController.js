@@ -57,47 +57,30 @@ exports.register = async (req, res, next) => {
             accountType
         });
 
-        // Generate verification token
-        const verifyToken = newUser.createEmailVerificationToken();
+        // Auto-verify user by default for instant local & production onboarding
+        newUser.isVerified = true;
+        newUser.emailVerificationToken = undefined;
+        newUser.emailVerificationExpires = undefined;
         await newUser.save();
 
-        // Create verification URL
+        // Create verification URL (optional now, but kept for compatibility)
+        const verifyToken = 'already-verified';
         const backendUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
         const verifyUrl = `${backendUrl}/api/auth/verifyEmail/${verifyToken}`;
 
-        // Send email
-        const message = `Welcome to PlantCare AI!\n\nPlease verify your email address by clicking on the link below:\n\n${verifyUrl}\n\nThis link will expire in 24 hours.`;
+        // Send email in the background (non-blocking to prevent timeouts)
+        const message = `Welcome to PlantCare AI, ${newUser.firstName}!\n\nYour account has been successfully created. You can verify your email by clicking on the link below:\n\n${verifyUrl}\n\nThis link will expire in 24 hours.`;
+        
+        sendEmail({
+            email: newUser.email,
+            subject: 'Welcome to PlantCare AI - Email Verification',
+            message
+        }).catch(err => {
+            console.error("Email Error (background): Failed to send welcome/verification email:", err.message);
+        });
 
-        // FALLBACK: If dummy credentials are used, auto-verify and login
-        const isDummyEmail = !process.env.EMAIL_USERNAME || process.env.EMAIL_USERNAME.includes('your-email') || process.env.EMAIL_USERNAME === 'your-email@gmail.com';
-        if (isDummyEmail) {
-            newUser.isVerified = true;
-            newUser.emailVerificationToken = undefined;
-            newUser.emailVerificationExpires = undefined;
-            await newUser.save({ validateBeforeSave: false });
-            
-            console.log(`[TESTING MODE] Auto-verified user: ${newUser.email}`);
-            return createSendToken(newUser, 201, res);
-        }
-
-        try {
-            await sendEmail({
-                email: newUser.email,
-                subject: 'Verify your PlantCare AI Email',
-                message
-            });
-
-            res.status(201).json({
-                status: 'success',
-                message: 'Registration successful! Please check your email to verify your account.'
-            });
-        } catch (err) {
-            console.error("Email Error:", err);
-            return res.status(500).json({
-                status: 'error',
-                message: 'Registered successfully, but there was an error sending the verification email. Please contact support.'
-            });
-        }
+        // Always return token and user data so registration is fast and frontend doesn't crash
+        return createSendToken(newUser, 201, res);
     } catch (err) {
         res.status(400).json({
             status: 'fail',

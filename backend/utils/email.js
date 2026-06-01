@@ -6,6 +6,9 @@ const sendEmail = async (options) => {
     // For Gmail, you'd need an App Password.
     const transporter = nodemailer.createTransport({
         service: 'Gmail',
+        connectionTimeout: 5000, // 5 seconds connection timeout
+        greetingTimeout: 5000,   // 5 seconds greeting timeout
+        socketTimeout: 5000,     // 5 seconds socket timeout
         auth: {
             user: process.env.EMAIL_USERNAME,
             pass: process.env.EMAIL_PASSWORD
