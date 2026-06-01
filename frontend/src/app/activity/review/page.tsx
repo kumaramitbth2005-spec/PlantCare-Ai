@@ -180,7 +180,7 @@ export default function ReviewPage() {
                         ) : (
                             <>
                                 <Send className="w-5 h-5 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform duration-500" />
-                                Submit Pulse Review
+                                Submit 
                             </>
                         )}
                     </button>

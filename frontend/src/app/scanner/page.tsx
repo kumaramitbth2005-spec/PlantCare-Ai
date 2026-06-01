@@ -239,11 +239,11 @@ export default function ScannerPage() {
                         <span className="w-2 h-2 rounded-full bg-pink-500 animate-pulse" />
                     </div>
                     <h1 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tighter flex items-center gap-4">
-                        Neural
+                        PlantCare AI
                         <span className="text-pink-500">Scanner</span>
                     </h1>
                     <p className="text-slate-500 dark:text-slate-400 font-bold max-w-xl text-sm sm:text-lg leading-relaxed">
-                        High-precision plant pathology identification. Backed by transfer learning and 87k+ expert-verified specimens.
+                       Nature with Smart Solutions
                     </p>
                 </div>
             </header>
@@ -275,10 +275,10 @@ export default function ScannerPage() {
                             </div>
                             <div>
                                 <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-                                    Camera Option 
+                                    Camera
                                     {useCamera && <span className="w-2 h-2 rounded-full bg-pink-500 animate-pulse" />}
                                 </h3>
-                                <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Select Primary Neural Input Device</p>
+                                <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Real Time capture Image</p>
                             </div>
                         </div>
                     </div>

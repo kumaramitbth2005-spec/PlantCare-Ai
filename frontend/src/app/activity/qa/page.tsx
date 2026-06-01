@@ -104,7 +104,7 @@ export default function QAPage() {
         <div className="max-w-6xl mx-auto px-6 py-12 pb-32">
             <header className="mb-12">
                 <h1 className="text-5xl font-black text-foreground tracking-tighter mb-4">
-                    Botanical <span className="text-pink-500 italic">Network</span>
+                    Botanical <span className="text-pink-500 italic">About Plant</span>
                 </h1>
                 <p className="text-slate-600 dark:text-slate-400 font-bold text-lg max-w-2xl">
                     Interact with our neural experts for real-time diagnostics and plant care optimization.
@@ -154,7 +154,7 @@ export default function QAPage() {
                             <MessageSquare className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <h3 className="text-2xl font-black text-foreground tracking-tight">Custom Logic Consult</h3>
+                            <h3 className="text-2xl font-black text-foreground tracking-tight">Ask me Here Any Query about Plant</h3>
                             <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Direct Expert Transmission</p>
                         </div>
                     </div>
@@ -196,7 +196,7 @@ export default function QAPage() {
                                 ) : (
                                     <>
                                         <Send className="w-5 h-5 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform duration-500" />
-                                        Initialize Neural Query
+                                        Summite
                                     </>
                                 )}
                             </button>
