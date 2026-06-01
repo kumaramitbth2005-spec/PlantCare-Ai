@@ -801,6 +801,11 @@ function ProfileContent() {
                             <div className="mt-8 space-y-2">
                                 <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{user.firstName} {user.lastName}</h3>
                                 <p className="text-sm text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest">{user.accountType}</p>
+                                <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400 font-black tracking-tight mt-3">
+                                    <span>mob-{user.contactNumber}</span>
+                                    <span className="text-slate-300 dark:text-slate-700 font-normal">•</span>
+                                    <span className="lowercase">{user.email}</span>
+                                </div>
                             </div>
 
                             <div className="mt-6 flex items-center gap-2 px-6 py-2 bg-green-500/10 text-green-600 dark:text-green-400 text-[10px] font-black rounded-full uppercase tracking-tighter border border-green-500/20 shadow-sm">
