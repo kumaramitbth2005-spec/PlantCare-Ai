@@ -10,12 +10,21 @@ import { useAuth } from "@/lib/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { BASE_URL } from "@/lib/api";
 
 export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
     const { t } = useLanguage();
     const { notifications, unreadCount, markAsRead, clearAll, addNotification } = useNotifications();
     const { user, logout } = useAuth();
     const [showNotifications, setShowNotifications] = useState(false);
+
+    const getProfilePhotoUrl = (photoPath: string | undefined | null) => {
+        if (!photoPath || photoPath === 'default.jpg') return null;
+        if (photoPath.startsWith('http://') || photoPath.startsWith('https://') || photoPath.startsWith('data:')) {
+            return photoPath;
+        }
+        return `${BASE_URL}${photoPath.startsWith('/') ? '' : '/'}${photoPath}`;
+    };
     
     // --- Alarm Implementation ---
     const [isAlarmActive, setIsAlarmActive] = useState(false);
@@ -469,9 +478,9 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
                             "hover:scale-110 transition-transform uppercase overflow-hidden"
                         )}
                     >
-                        {user.profilePhoto ? (
+                        {getProfilePhotoUrl(user.profilePhoto) ? (
                             <Image
-                                src={user.profilePhoto}
+                                src={getProfilePhotoUrl(user.profilePhoto)!}
                                 alt="Profile"
                                 fill
                                 className="object-cover"

@@ -69,7 +69,7 @@ type AuthContextType = {
     forgotPassword: (email: string) => Promise<void>;
     resetPassword: (otp: string, password: string) => Promise<void>;
     logout: () => void;
-    updateProfile: (data: Partial<User>) => Promise<void>;
+    updateProfile: (data: Partial<User>, skipNetwork?: boolean) => Promise<void>;
     isAuthenticated: boolean;
 };
 
@@ -209,8 +209,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    const updateProfile = async (data: Partial<User>) => {
+    const updateProfile = async (data: Partial<User>, skipNetwork = false) => {
         try {
+            if (skipNetwork) {
+                if (user) {
+                    const updatedUser = { ...user, ...data } as User;
+                    setUser(updatedUser);
+                    localStorage.setItem('pc_user', JSON.stringify(updatedUser));
+                }
+                return;
+            }
+
             const res = await api.patch('/users/updateMe', data);
 
             if (res.data.status === 'success') {

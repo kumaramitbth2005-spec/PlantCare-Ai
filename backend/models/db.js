@@ -81,6 +81,10 @@ class UserDocument {
         if (this.isVerified === undefined) this.isVerified = true; // Auto-verify
     }
 
+    get id() {
+        return this._id;
+    }
+
     async save(options = {}) {
         // Hash password if modified or newly set and not already hashed
         if (this.password && !this.password.startsWith('$2a$') && !this.password.startsWith('$2b$')) {
@@ -133,6 +137,10 @@ class GenericDocument {
         this._filename = filename;
         if (!this._id) this._id = crypto.randomUUID();
         if (!this.createdAt) this.createdAt = new Date().toISOString();
+    }
+
+    get id() {
+        return this._id;
     }
 
     async save() {

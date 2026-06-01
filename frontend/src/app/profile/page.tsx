@@ -115,7 +115,15 @@ function ProfileContent() {
         },
         addresses: user?.addresses || []
     });
-    const [profileImage, setProfileImage] = useState<string | null>(user?.profilePhoto || null);
+    const getProfilePhotoUrl = (photoPath: string | undefined | null) => {
+        if (!photoPath || photoPath === 'default.jpg') return null;
+        if (photoPath.startsWith('http://') || photoPath.startsWith('https://') || photoPath.startsWith('data:')) {
+            return photoPath;
+        }
+        return `${BASE_URL}${photoPath.startsWith('/') ? '' : '/'}${photoPath}`;
+    };
+
+    const [profileImage, setProfileImage] = useState<string | null>(getProfilePhotoUrl(user?.profilePhoto));
     const [editImageFile, setEditImageFile] = useState<string | null>(null);
     const [isPhotoMenuOpen, setIsPhotoMenuOpen] = useState(false);
     const [isCameraOpen, setIsCameraOpen] = useState(false);
@@ -565,11 +573,11 @@ function ProfileContent() {
                         }
 
                         // Success scenario
-                        const newPhotoUrl = data.data.fileUrl.startsWith('http')
+                        const resolvedPhotoUrl = data.data.fileUrl.startsWith('http')
                             ? data.data.fileUrl
-                            : `${BASE_URL}${data.data.fileUrl}`;
-                        setProfileImage(newPhotoUrl);
-                        await updateProfile({ profilePhoto: newPhotoUrl }); // Synchronize auth context too
+                            : `${BASE_URL}${data.data.fileUrl.startsWith('/') ? '' : '/'}${data.data.fileUrl}`;
+                        setProfileImage(resolvedPhotoUrl);
+                        await updateProfile({ profilePhoto: data.data.fileUrl }, true); // Synchronize auth context too
                         setEditImageFile(null);
 
                         addNotification({
@@ -609,7 +617,7 @@ function ProfileContent() {
 
             // Fallback to default avatar behavior mapping
             setProfileImage(null);
-            await updateProfile({ profilePhoto: 'default.jpg' });
+            await updateProfile({ profilePhoto: 'default.jpg' }, true);
 
             addNotification({
                 title: "Profile Image Removed",
@@ -634,6 +642,7 @@ function ProfileContent() {
 
     useEffect(() => {
         if (user) {
+            setProfileImage(getProfilePhotoUrl(user.profilePhoto));
             setFormData({
                 firstName: user.firstName,
                 lastName: user.lastName,
