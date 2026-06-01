@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
+const fs = require('fs');
 
 // Load environment variables
 dotenv.config();
@@ -78,12 +79,26 @@ const DB = process.env.MONGO_URI || process.env.DATABASE || 'mongodb://127.0.0.1
 
 mongoose.set('bufferCommands', false); 
 
+// Connection Event Listeners for logs
+mongoose.connection.on('connecting', () => {
+    console.log('⌛ Connecting to MongoDB...');
+});
+mongoose.connection.on('connected', () => {
+    console.log('✅ Mongoose default connection open to DB');
+});
+mongoose.connection.on('error', (err) => {
+    console.error('❌ Mongoose default connection error: ' + err.message);
+});
+mongoose.connection.on('disconnected', () => {
+    console.log('⚠️ Mongoose default connection disconnected');
+});
+
 mongoose
     .connect(DB, {
         serverSelectionTimeoutMS: 60000, 
     })
     .then(() => {
-        console.log('✅ DB connection successful!');
+        console.log('✅ DB connection initialized successfully!');
     })
     .catch((err) => {
         console.error('❌ DB connection error:', err.message);
