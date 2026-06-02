@@ -121,3 +121,29 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(236, 72, 153, 0.5);
 }
+
+/* Mobile: reduce hover lift to prevent layout jank on touch */
+@media (max-width: 640px) {
+  .glass-card:hover {
+    transform: translateY(-4px) scale(1.002);
+  }
+
+  .btn-primary {
+    padding: 0.75rem 1.5rem;
+    min-height: 44px;
+  }
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Prevent horizontal overflow globally */
+html, body {
+  overflow-x: hidden;
+}
