@@ -91,15 +91,16 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
     const searchInputRef = useRef<HTMLInputElement>(null);
     const searchDropdownRef = useRef<HTMLDivElement>(null);
 
     const searchIndex = [
         // Main Navigation
-        { id: 'dashboard', title: t('sidebar.dashboard') || 'Home Overview', path: '/dashboard', icon: LayoutDashboard, desc: 'View your main activity and analytics' },
+        { id: 'dashboard', title: t('sidebar.dashboard') || 'Plant Health Score', path: '/dashboard', icon: LayoutDashboard, desc: 'View your main activity and analytics' },
         { id: 'scanner', title: t('sidebar.scanner') || 'AI Diagnostics Scanner', path: '/scanner', icon: Scan, desc: 'Scan plants for diseases and get instant results' },
         { id: 'history', title: t('sidebar.history') || 'Mission Logs', path: '/history', icon: History, desc: 'View past diagnostic history and reports' },
-        { id: 'workspace', title: t('sidebar.workspace') || 'Workspace', path: '/workspace', icon: FolderKanban, desc: 'Manage your active projects and tasks' },
+        { id: 'workspace', title: t('sidebar.workspace') || 'Plant Library', path: '/workspace', icon: FolderKanban, desc: 'Your comprehensive hub for botanical intelligence' },
         
         // Settings & Profile
         { id: 'profile', title: t('profile.personalProfile') || 'Personal Profile', path: '/profile', icon: User, desc: 'Manage your personal account details' },
@@ -129,11 +130,13 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
         function handleGlobalKeyDown(e: KeyboardEvent) {
             if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
                 e.preventDefault();
-                searchInputRef.current?.focus();
+                setIsMobileSearchOpen(true);
+                setTimeout(() => searchInputRef.current?.focus(), 50);
             }
             if (e.key === 'Escape') {
                 setShowNotifications(false);
                 setIsSearchOpen(false);
+                setIsMobileSearchOpen(false);
             }
         }
         document.addEventListener("keydown", handleGlobalKeyDown);
@@ -216,6 +219,48 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
                     </span>
                 </div>
             </div>
+
+            {/* Mobile Search Overlay */}
+            <AnimatePresence>
+                {isMobileSearchOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="absolute inset-0 bg-background/95 backdrop-blur-xl z-[60] flex items-center px-4 gap-3 md:hidden"
+                    >
+                        <div className="relative w-full">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-pink-500/60 z-10" />
+                            <input
+                                ref={searchInputRef}
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                    setIsSearchOpen(true);
+                                }}
+                                onFocus={() => setIsSearchOpen(true)}
+                                onKeyDown={handleSearchKeyDown}
+                                placeholder={t('navbar.search')}
+                                className={cn(
+                                    "w-full bg-input border border-border rounded-2xl py-3",
+                                    "pl-12 pr-4 text-sm font-bold text-foreground placeholder:text-slate-500",
+                                    "focus:ring-4 focus:ring-pink-500/10 focus:border-pink-500/20 transition-all outline-none"
+                                )}
+                            />
+                        </div>
+                        <button
+                            onClick={() => {
+                                setIsMobileSearchOpen(false);
+                                setIsSearchOpen(false);
+                            }}
+                            className="p-3 bg-card border border-border rounded-2xl text-slate-600 dark:text-slate-400 min-w-[44px] min-h-[44px] flex items-center justify-center shrink-0"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Search Bar - hidden on very small screens */}
             <div className="relative w-full max-w-[450px] group hidden md:block">
@@ -311,6 +356,17 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
 
             <div className="flex items-center gap-2 sm:gap-6">
                 <div className="flex items-center gap-2">
+                    {/* Mobile Search Toggle */}
+                    <button
+                        onClick={() => {
+                            setIsMobileSearchOpen(true);
+                            setTimeout(() => searchInputRef.current?.focus(), 50);
+                        }}
+                        className="md:hidden p-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400 min-w-[44px] min-h-[44px] flex items-center justify-center transition-all"
+                    >
+                        <Search className="w-5 h-5" />
+                    </button>
+
                     {/* Alarm Clock */}
                     {user?.plantReminders?.water?.enabled && (
                         <div className="relative">

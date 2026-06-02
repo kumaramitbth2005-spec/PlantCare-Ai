@@ -77,7 +77,8 @@ function StatCard({ stat, index }: { stat: StatData, index: number }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1, type: "spring", damping: 15 }}
-            className="glass-card p-8 flex flex-col gap-6 shadow-sm hover:shadow-pink-500/10 border border-pink-500/5 dark:border-pink-500/10"
+            style={{ willChange: 'transform' }}
+            className="glass-card p-5 sm:p-8 flex flex-col gap-4 sm:gap-6 shadow-sm hover:shadow-pink-500/10 border border-pink-500/5 dark:border-pink-500/10"
         >
             <div className="flex items-center justify-between">
                 <div className={cn(
@@ -86,19 +87,19 @@ function StatCard({ stat, index }: { stat: StatData, index: number }) {
                     stat.color === 'rose' && "bg-gradient-to-br from-rose-500 to-rose-600 text-white",
                     stat.color === 'fuchsia' && "bg-gradient-to-br from-fuchsia-500 to-fuchsia-600 text-white",
                 )}>
-                    <ColorIcon className="w-6 h-6" />
+                    <ColorIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div className={cn(
-                    "flex items-center gap-1 text-xs font-black px-2.5 py-1 rounded-full uppercase tracking-tighter",
+                    "flex items-center gap-1 text-[10px] sm:text-xs font-black px-2 sm:px-2.5 py-1 rounded-full uppercase tracking-tighter",
                     stat.trendUp ? "bg-pink-100 text-pink-600 dark:bg-pink-500/10 dark:text-pink-400" : "bg-slate-100 text-slate-500 dark:bg-slate-800"
                 )}>
                     {stat.trendUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                     {stat.trend}
                 </div>
             </div>
-            <div>
-                <p className="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">{stat.label}</p>
-                <h3 className="text-3xl font-black text-slate-900 dark:text-white mt-1.5">{stat.value}</h3>
+            <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest truncate">{stat.label}</p>
+                <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1.5 break-all">{stat.value}</h3>
             </div>
         </motion.div>
     );
@@ -229,21 +230,21 @@ export default function Dashboard() {
         ],
     };
     return (
-        <div className="space-y-10 max-w-7xl mx-auto px-4 sm:px-6">
-            <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 py-4">
-                <div>
-                    <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">
-                        Overview{" "}
+        <div className="space-y-8 sm:space-y-10 max-w-7xl mx-auto px-4 sm:px-6">
+            <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 py-4">
+                <div className="min-w-0">
+                    <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tighter leading-tight">
+                        Plant Health Score{" "}
                         <span className="text-pink-500 italic">
                             {t('sidebar.dashboard')}
                         </span>
                     </h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">
+                    <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-2 font-medium">
                         Monitoring plant health metrics across active zones.
                     </p>
                 </div>
                 <Link href="/scanner">
-                    <button className="btn-primary w-full sm:w-auto text-sm group shadow-pink-500/40">
+                    <button className="btn-primary w-full sm:w-auto text-sm group shadow-pink-500/40 min-h-[44px]">
                         <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
                         Start New Analysis
                     </button>
@@ -251,7 +252,7 @@ export default function Dashboard() {
             </header>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
                 {statsConfig.map((stat, i) => (
                     <StatCard
                         key={stat.label}
@@ -284,12 +285,12 @@ export default function Dashboard() {
 
             {!isLoading && !fetchError && (
                 <>
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-10">
                         {/* Main Chart */}
-                        <div className="lg:col-span-2 glass-card p-8 shadow-xl bg-white dark:bg-[#1a1215]/50">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-6">
+                        <div className="lg:col-span-2 glass-card p-5 sm:p-8 shadow-xl bg-white dark:bg-[#1a1215]/50">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 sm:mb-8 gap-4 sm:gap-6">
                                 <div>
-                                    <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                                    <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
                                         Activity Analysis
                                     </h3>
                                     <p className="text-xs text-pink-500/60 font-bold uppercase tracking-[0.2em] mt-1">
@@ -304,7 +305,7 @@ export default function Dashboard() {
                                 >
                                     <button
                                         className={cn(
-                                            "px-5 py-2 text-xs font-black uppercase tracking-widest",
+                                            "px-4 py-2 text-xs font-black uppercase tracking-widest min-h-[40px]",
                                             "bg-white dark:bg-pink-500 text-pink-600 dark:text-white",
                                             "rounded-lg shadow-sm transition-all"
                                         )}
@@ -313,7 +314,7 @@ export default function Dashboard() {
                                     </button>
                                     <button
                                         className={cn(
-                                            "px-5 py-2 text-xs font-black uppercase tracking-widest",
+                                            "px-4 py-2 text-xs font-black uppercase tracking-widest min-h-[40px]",
                                             "text-slate-400 dark:text-slate-500",
                                             "hover:text-pink-500 transition-all"
                                         )}
@@ -322,7 +323,7 @@ export default function Dashboard() {
                                     </button>
                                 </div>
                             </div>
-                            <div className="h-[350px] w-full">
+                            <div className="h-[220px] sm:h-[350px] w-full">
                                 <Line
                                     data={lineData}
                                     options={{
@@ -460,8 +461,8 @@ export default function Dashboard() {
                                 View Full Log
                             </Link>
                         </div>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
+                        <div className="overflow-x-auto w-full">
+                            <table className="w-full text-left min-w-[500px]">
                                 <thead>
                                     <tr
                                         className={cn(
@@ -469,17 +470,17 @@ export default function Dashboard() {
                                             "text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]"
                                         )}
                                     >
-                                        <th className="px-8 py-5">
+                                        <th className="px-4 sm:px-8 py-4 sm:py-5 whitespace-nowrap">
                                             Specimen
                                         </th>
-                                        <th className="px-8 py-5">
-                                            Diagnostic / Findings
+                                        <th className="px-4 sm:px-8 py-4 sm:py-5 whitespace-nowrap">
+                                            Diagnostic
                                         </th>
-                                        <th className="px-8 py-5">
-                                            Certainty Index
+                                        <th className="px-4 sm:px-8 py-4 sm:py-5 whitespace-nowrap">
+                                            Certainty
                                         </th>
-                                        <th className="px-8 py-5 text-right">
-                                            Timeframe
+                                        <th className="px-4 sm:px-8 py-4 sm:py-5 text-right whitespace-nowrap">
+                                            Time
                                         </th>
                                     </tr>
                                 </thead>
@@ -496,65 +497,59 @@ export default function Dashboard() {
                                                 key={scan._id}
                                                 className="hover:bg-pink-50/30 dark:hover:bg-pink-500/5 transition-all duration-300 group"
                                             >
-                                                <td className="px-8 py-6">
-                                                    <div className="flex items-center gap-4">
+                                                <td className="px-4 sm:px-8 py-4 sm:py-6">
+                                                    <div className="flex items-center gap-3">
                                                         <div
                                                             className={cn(
-                                                                "w-10 h-10 rounded-2xl bg-pink-100 dark:bg-pink-500/10",
+                                                                "w-9 h-9 shrink-0 rounded-2xl bg-pink-100 dark:bg-pink-500/10",
                                                                 "flex items-center justify-center text-pink-600 dark:text-pink-400",
                                                                 "font-black text-sm shadow-inner group-hover:scale-110 transition-transform"
                                                             )}
                                                         >
                                                             {scan.plant[0]}
                                                         </div>
-                                                        <div>
-                                                            <span className="text-sm font-black text-slate-800 dark:text-slate-200">
+                                                        <div className="min-w-0">
+                                                            <span className="text-sm font-black text-slate-800 dark:text-slate-200 block truncate max-w-[120px]">
                                                                 {scan.plant}
                                                             </span>
                                                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
-                                                                Ref ID: {scan._id.slice(-6).toUpperCase()}
+                                                                #{scan._id.slice(-6).toUpperCase()}
                                                             </p>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-8 py-6">
-                                                    <div className="flex items-center gap-3">
+                                                <td className="px-4 sm:px-8 py-4 sm:py-6 max-w-[160px]">
+                                                    <div className="flex items-center gap-2">
                                                         <div
                                                             className={cn(
-                                                                "w-2.5 h-2.5 rounded-full shadow-sm animate-pulse",
+                                                                "w-2 h-2 shrink-0 rounded-full",
                                                                 scan.type === 'Healthy' ? "bg-fuchsia-400" : "bg-pink-500"
                                                             )}
                                                         />
-                                                        <span className="text-sm text-slate-600 dark:text-slate-400 font-bold">
-                                                            {scan.disease} ({scan.type})
+                                                        <span className="text-sm text-slate-600 dark:text-slate-400 font-bold break-words">
+                                                            {scan.disease}
                                                         </span>
                                                     </div>
                                                 </td>
-                                                <td className="px-8 py-6">
-                                                    <div className="w-32 h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
+                                                <td className="px-4 sm:px-8 py-4 sm:py-6">
+                                                    <div className="w-20 sm:w-32 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
                                                         <motion.div
-                                                            initial={{
-                                                                width: 0
-                                                            }}
-                                                            animate={{
-                                                                width: `${scan.confidence}%`
-                                                            }}
-                                                            transition={{
-                                                                duration: 1.5,
-                                                                delay: 0.2
-                                                            }}
+                                                            initial={{ width: 0 }}
+                                                            animate={{ width: `${scan.confidence}%` }}
+                                                            transition={{ duration: 1.5, delay: 0.2 }}
+                                                            style={{ willChange: 'width' }}
                                                             className={cn(
-                                                                "h-full rounded-full shadow-[0_0_10px_rgba(236,72,153,0.3)]",
+                                                                "h-full rounded-full",
                                                                 scan.type === 'Healthy' ? "bg-fuchsia-500" : "bg-pink-500"
                                                             )}
                                                         />
                                                     </div>
-                                                    <span className="text-[10px] font-black text-slate-400 mt-2 block tracking-widest">
-                                                        {scan.confidence}% CONFIDENCE
+                                                    <span className="text-[10px] font-black text-slate-400 mt-1 block tracking-widest">
+                                                        {scan.confidence}%
                                                     </span>
                                                 </td>
-                                                <td className="px-8 py-6 text-right">
-                                                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                                                <td className="px-4 sm:px-8 py-4 sm:py-6 text-right">
+                                                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest whitespace-nowrap">
                                                         {format(new Date(scan.createdAt), 'MMM dd, hh:mm aa')}
                                                     </span>
                                                 </td>

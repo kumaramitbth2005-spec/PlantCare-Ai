@@ -291,12 +291,12 @@ export default function ScannerPage() {
                         })}
                         className={cn(
                             "group relative overflow-hidden transition-all duration-700 flex flex-col items-center justify-center cursor-pointer w-full max-w-full",
-                            !useCamera && "border-2 border-dashed rounded-[3rem] shadow-sm",
-                            useCamera && !preview && "rounded-[2.5rem] bg-black shadow-2xl",
+                            !useCamera && "border-2 border-dashed rounded-[2rem] sm:rounded-[3rem] shadow-sm",
+                            useCamera && !preview && "rounded-[2rem] sm:rounded-[2.5rem] bg-black shadow-2xl",
                             !useCamera && isDragActive
                                 ? "border-pink-500 bg-pink-50/30"
                                 : !useCamera ? "border-slate-100 dark:border-pink-500/10 hover:border-pink-400 hover:bg-pink-50/10 dark:hover:bg-pink-500/5" : "",
-                            (preview || useCamera) ? (useCamera && !preview ? "p-0 aspect-[3/4] sm:aspect-video" : "p-2 aspect-[4/3] sm:aspect-video") : "p-6 min-h-[300px] md:min-h-[400px]"
+                            (preview || useCamera) ? (useCamera && !preview ? "p-0 aspect-[3/4] sm:aspect-video" : "p-2 aspect-[4/3] sm:aspect-video") : "p-4 sm:p-6 min-h-[260px] sm:min-h-[300px] md:min-h-[400px]"
                         )}
                     >
                         {!useCamera && <input {...getInputProps()} disabled={useCamera} />}
@@ -345,10 +345,11 @@ export default function ScannerPage() {
                                             <motion.div
                                                 animate={{ top: ["0%", "100%", "0%"] }}
                                                 transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                                                style={{ willChange: 'transform' }}
                                                 className={cn(
                                                     "absolute left-0 right-0 h-1 bg-gradient-to-r",
                                                     "from-transparent via-pink-400 to-transparent",
-                                                    "shadow-[0_0_30px_rgba(236,72,153,1)] opacity-80 pointer-events-none"
+                                                    "opacity-80 pointer-events-none"
                                                 )}
                                             />
                                             <div className="absolute inset-x-0 bottom-10 flex justify-center">
@@ -382,7 +383,7 @@ export default function ScannerPage() {
                                     
                                     {/* Scan Overlay Rectangle */}
                                     <div className="absolute inset-0 pointer-events-none z-10 flex flex-col items-center justify-center">
-                                        <div className="w-[85%] sm:w-[60%] aspect-square relative rounded-3xl shadow-[0_0_0_9999px_rgba(0,0,0,0.65)]">
+                                        <div className="w-[80%] sm:w-[60%] aspect-square relative rounded-2xl sm:rounded-3xl shadow-[0_0_0_9999px_rgba(0,0,0,0.65)]">
                                             
                                             {/* Scanning Line overlaying just the square box */}
                                             {!capturedPhotoUrl && !loading && (
@@ -390,7 +391,8 @@ export default function ScannerPage() {
                                                     <motion.div 
                                                         animate={{ top: ["0%", "100%", "0%"] }}
                                                         transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
-                                                        className="absolute left-0 right-0 h-1 bg-pink-500 shadow-[0_0_30px_rgba(236,72,153,1)]"
+                                                        style={{ willChange: 'transform' }}
+                                                        className="absolute left-0 right-0 h-1 bg-pink-500 opacity-90"
                                                     />
                                                 </div>
                                             )}
@@ -539,9 +541,9 @@ export default function ScannerPage() {
                                 initial={{ opacity: 0, x: 50 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 className={cn(
-                                    "glass-card h-full p-6 sm:p-10 space-y-6 sm:space-y-10 bg-white dark:bg-[#1a1215]",
-                                    "border border-slate-100 dark:border-pink-500/10 flex flex-col rounded-[3rem]",
-                                    "shadow-[0_40px_80px_-20px_rgba(30,27,28,0.1)]"
+                                    "glass-card h-full p-5 sm:p-10 space-y-5 sm:space-y-10 bg-white dark:bg-[#1a1215]",
+                                    "border border-slate-100 dark:border-pink-500/10 flex flex-col rounded-[2rem] sm:rounded-[3rem]",
+                                    "shadow-[0_40px_80px_-20px_rgba(30,27,28,0.1)]" 
                                 )}
                             >
                                 <div className="flex items-start justify-between">
@@ -562,7 +564,7 @@ export default function ScannerPage() {
                                                 </span>
                                             )}
                                         </div>
-                                        <h2 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tighter capitalize leading-none">{result.plant}</h2>
+                                        <h2 className="text-2xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tighter capitalize leading-none break-words hyphens-auto">{result.plant}</h2>
                                     </div>
                                     <div className={cn(
                                         "bg-slate-50 dark:bg-pink-500/5 p-3 sm:p-5 rounded-[2rem]",
@@ -589,7 +591,7 @@ export default function ScannerPage() {
                                     </div>
                                     <div className="text-center sm:text-left">
                                         <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-50 mb-1">Diagnosis Findings</p>
-                                        <p className="text-2xl sm:text-3xl font-black leading-tight tracking-tight">{result.disease}</p>
+                                        <p className="text-xl sm:text-3xl font-black leading-tight tracking-tight break-words hyphens-auto">{result.disease}</p>
                                     </div>
                                 </div>
 
@@ -699,10 +701,10 @@ export default function ScannerPage() {
                             </motion.div>
                         ) : (
                             <div className={cn(
-                                "glass-card h-full min-h-[550px] flex flex-col items-center",
-                                "justify-center text-center p-12 space-y-10 bg-white/40",
+                                "glass-card h-full min-h-[400px] sm:min-h-[550px] flex flex-col items-center",
+                                "justify-center text-center p-6 sm:p-12 space-y-8 sm:space-y-10 bg-white/40",
                                 "dark:bg-pink-500/5 border border-slate-100 dark:border-pink-500/10",
-                                "shadow-2xl rounded-[4rem]"
+                                "shadow-2xl rounded-[2.5rem] sm:rounded-[4rem]"
                             )}>
                                 <div className="relative group">
                                     <div className="absolute inset-0 bg-pink-400/30 blur-[100px] rounded-full group-hover:bg-pink-500/40 transition-all duration-1000" />
@@ -721,7 +723,7 @@ export default function ScannerPage() {
                                     </div>
                                 </div>
                                 <div className="space-y-4">
-                                    <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Treatment Suggestion</h3>
+                                    <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Treatment Suggestion</h3>
                                     <p className="text-slate-500 dark:text-slate-400 font-bold leading-relaxed text-sm max-w-xs mx-auto">
                                         The neural engine is online. Supply a bio-specimen (leaf image) to initiate deep analysis and disease detection.
                                     </p>
