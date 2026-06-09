@@ -472,7 +472,9 @@ export default function ScannerPage() {
                                     </div>
                                     <div>
                                         <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Scan Plant Image</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slateo
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-3 font-bold leading-relaxed px-4">
+                                            Drag leaf image for deep neural analysis. Neural engine identifies 38+ pathology states.
+                                        </p>
                                     </div> 
                                     <div className="flex justify-center gap-3">
                                         {["8k RES", "ALPHA", "BIO"].map(tag => (
